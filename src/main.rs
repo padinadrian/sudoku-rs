@@ -37,7 +37,7 @@ fn main() -> color_eyre::Result<()> {
     // ratatui::run(app)?;
 
     let mut board = Board::default();
-    board.load_game("./game.csv").unwrap();
+    board.load_game("examples/game.csv").unwrap();
 
     print_board(&board);
 
