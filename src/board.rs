@@ -5,6 +5,18 @@ use crate::number::Number;
 const ROW_SIZE: usize = 9;
 const BOARD_SIZE: usize = ROW_SIZE * ROW_SIZE;
 
+const ALL_NUMBERS: [Number; ROW_SIZE] = [
+    Number::One,
+    Number::Two,
+    Number::Three,
+    Number::Four,
+    Number::Five,
+    Number::Six,
+    Number::Seven,
+    Number::Eight,
+    Number::Nine,
+];
+
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Tile {
     pub notes: [Number; ROW_SIZE],
@@ -47,6 +59,7 @@ fn to_index(x: usize, y: usize) -> usize {
     return x + (y * ROW_SIZE);
 }
 
+/// Check if the row has exactly one of each sudoku value.
 fn row_is_solved(row: &Row) -> bool {
     let any_blank = row.tiles.iter().any(|tile| tile.value.is_none());
     if any_blank {
@@ -72,9 +85,19 @@ fn row_is_solved(row: &Row) -> bool {
 }
 
 impl Board {
+    /// Get a ref to the tile at the given coordinates.
+    pub fn get_tile(&self, x: usize, y: usize) -> &Tile {
+        &self.rows[y].tiles[x]
+    }
+
+    /// Get a mutable ref to the tile at the given coordinates.
+    pub fn get_tile_mut(&mut self, x: usize, y: usize) -> &mut Tile {
+        &mut self.rows[y].tiles[x]
+    }
+
     /// Get value of the tile at the given coordinates, if it exists.
-    pub fn get(&self, x: usize, y: usize) -> Option<Number> {
-        self.rows[y].tiles[x].value
+    pub fn get_value(&self, x: usize, y: usize) -> Option<Number> {
+        self.get_tile(x, y).value
     }
 
     /// Get a single row of the board.
@@ -162,12 +185,20 @@ impl Board {
     /// Check if the board is solved and the game is finished.
     pub fn is_solved(&self) -> bool {
         for n in 0..ROW_SIZE {
-            if !row_is_solved(&self.get_row(n).expect("Row index out of bounds")) {
+            if !row_is_solved(
+                &self
+                    .get_row(n)
+                    .expect(&format!("Row index {} out of bounds", n)),
+            ) {
                 return false;
             }
         }
         for n in 0..ROW_SIZE {
-            if !row_is_solved(&self.get_column(n).expect("Row index out of bounds")) {
+            if !row_is_solved(
+                &self
+                    .get_column(n)
+                    .expect(&format!("Row index {} out of bounds", n)),
+            ) {
                 return false;
             }
         }
@@ -181,6 +212,18 @@ impl Board {
             }
         }
         true
+    }
+
+    /// Fill every unsolved space with notes for every value.
+    pub fn fill_all_notes(&mut self) {
+        for y in 0..ROW_SIZE {
+            for x in 0..ROW_SIZE {
+                let tile = self.get_tile_mut(x, y);
+                if tile.value.is_none() {
+                    tile.notes = ALL_NUMBERS.clone();
+                }
+            }
+        }
     }
 }
 
@@ -247,5 +290,16 @@ mod tests {
         let mut board = Board::default();
         board.load_from_str(UNSOLVED_BOARD).unwrap();
         assert!(!board.is_solved());
+    }
+
+    #[test]
+    fn test_board_fill_all_notes() {
+        let mut board = Board::default();
+        board.get_tile_mut(3, 5).value = Some(Number::Five);
+        board.fill_all_notes();
+        assert_eq!(board.get_value(3, 5), Some(Number::Five));
+        assert_eq!(board.get_value(3, 4), None);
+        assert_eq!(board.get_tile(3, 5).notes, [Number::default(); ROW_SIZE]);
+        assert_eq!(board.get_tile(3, 4).notes, ALL_NUMBERS);
     }
 }
