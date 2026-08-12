@@ -1,26 +1,36 @@
 //! Board class
 
 use crate::number::Number;
+use fixedbitset::FixedBitSet;
+use std::fmt;
 
-const ROW_SIZE: usize = 9;
-const BOARD_SIZE: usize = ROW_SIZE * ROW_SIZE;
+pub const ROW_SIZE: usize = 9;
 
-const ALL_NUMBERS: [Number; ROW_SIZE] = [
-    Number::One,
-    Number::Two,
-    Number::Three,
-    Number::Four,
-    Number::Five,
-    Number::Six,
-    Number::Seven,
-    Number::Eight,
-    Number::Nine,
-];
-
-#[derive(Debug, Default, Clone, PartialEq)]
+/// Represents a single tile on the board which contains the value
+/// (set or unset) and the notes of possible values as a bitset.
+#[derive(Debug, Clone, PartialEq)]
 pub struct Tile {
-    pub notes: [Number; ROW_SIZE],
+    pub notes: FixedBitSet,
     pub value: Option<Number>,
+}
+
+impl fmt::Display for Tile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(number) = self.value {
+            write!(f, "{}", number as u8)
+        } else {
+            write!(f, " ")
+        }
+    }
+}
+
+impl Default for Tile {
+    fn default() -> Self {
+        Self {
+            notes: FixedBitSet::with_capacity(ROW_SIZE),
+            value: None,
+        }
+    }
 }
 
 impl Tile {
@@ -161,7 +171,11 @@ impl Board {
         for (y, result) in reader.deserialize().enumerate() {
             let row: SerializedRow = result?;
             for x in 0..ROW_SIZE {
-                self.set(x, y, Some(Number::from(row[x])));
+                let number = match row[x] {
+                    n if (n > 0 && n < 10) => Some(Number::from(n)),
+                    _ => None,
+                };
+                self.set(x, y, number);
             }
         }
         Ok(())
@@ -220,7 +234,7 @@ impl Board {
             for x in 0..ROW_SIZE {
                 let tile = self.get_tile_mut(x, y);
                 if tile.value.is_none() {
-                    tile.notes = ALL_NUMBERS.clone();
+                    tile.notes.insert_range(0..ROW_SIZE);
                 }
             }
         }
@@ -299,7 +313,12 @@ mod tests {
         board.fill_all_notes();
         assert_eq!(board.get_value(3, 5), Some(Number::Five));
         assert_eq!(board.get_value(3, 4), None);
-        assert_eq!(board.get_tile(3, 5).notes, [Number::default(); ROW_SIZE]);
-        assert_eq!(board.get_tile(3, 4).notes, ALL_NUMBERS);
+        assert_eq!(board.get_tile(3, 5).notes.count_ones(0..ROW_SIZE), 0);
+        assert_eq!(
+            board.get_tile(3, 5).notes.count_zeroes(0..ROW_SIZE),
+            ROW_SIZE
+        );
+        assert_eq!(board.get_tile(3, 4).notes.count_ones(0..ROW_SIZE), ROW_SIZE);
+        assert_eq!(board.get_tile(3, 4).notes.count_zeroes(0..ROW_SIZE), 0);
     }
 }
