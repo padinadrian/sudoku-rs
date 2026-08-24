@@ -23,7 +23,7 @@ fn to_index(x: usize, y: usize) -> usize {
 ///
 /// 6 | 7 | 8
 ///
-fn to_square_index(x: usize, y: usize) -> usize {
+pub fn to_square_index(x: usize, y: usize) -> usize {
     ((x / 3) % 3) + ((y / 3) * 3)
 }
 
@@ -96,13 +96,13 @@ pub struct Board {
 type SerializedRow = [u8; ROW_SIZE];
 
 #[derive(Clone)]
-pub struct RowIterator<'a> {
+pub struct RowIter<'a> {
     board: &'a Board,
     row: usize,
     index: usize,
 }
 
-impl<'a> RowIterator<'a> {
+impl<'a> RowIter<'a> {
     pub fn new(board: &'a Board, row: usize) -> Self {
         assert!(row < ROW_SIZE);
         Self {
@@ -113,7 +113,7 @@ impl<'a> RowIterator<'a> {
     }
 }
 
-impl<'a> Iterator for RowIterator<'a> {
+impl<'a> Iterator for RowIter<'a> {
     type Item = &'a Tile;
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= ROW_SIZE {
@@ -126,13 +126,13 @@ impl<'a> Iterator for RowIterator<'a> {
 }
 
 #[derive(Clone)]
-pub struct ColumnIterator<'a> {
+pub struct ColumnIter<'a> {
     board: &'a Board,
     column: usize,
     index: usize,
 }
 
-impl<'a> ColumnIterator<'a> {
+impl<'a> ColumnIter<'a> {
     pub fn new(board: &'a Board, column: usize) -> Self {
         assert!(column < ROW_SIZE);
         Self {
@@ -143,7 +143,7 @@ impl<'a> ColumnIterator<'a> {
     }
 }
 
-impl<'a> Iterator for ColumnIterator<'a> {
+impl<'a> Iterator for ColumnIter<'a> {
     type Item = &'a Tile;
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= ROW_SIZE {
@@ -155,21 +155,21 @@ impl<'a> Iterator for ColumnIterator<'a> {
     }
 }
 
-#[derive(Clone)]
-pub struct SquareIterator<'a> {
-    board: &'a Board,
+#[derive(Debug, Clone)]
+pub struct SquareIndexIter {
     x_start: usize,
     y_start: usize,
     index: usize,
 }
 
-impl<'a> SquareIterator<'a> {
-    pub fn new(board: &'a Board, n: usize) -> Self {
+impl SquareIndexIter {
+    /// Construct a new iterator object for the given square.
+    /// The square number `n` must be between 0 and 8 inclusive.
+    pub fn new(n: usize) -> Self {
         assert!(n < ROW_SIZE);
         let x_start = (n % 3) * 3;
         let y_start = (n / 3) * 3;
         Self {
-            board,
             x_start,
             y_start,
             index: 0,
@@ -177,8 +177,9 @@ impl<'a> SquareIterator<'a> {
     }
 }
 
-impl<'a> Iterator for SquareIterator<'a> {
-    type Item = &'a Tile;
+impl Iterator for SquareIndexIter {
+    type Item = (usize, usize);
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= ROW_SIZE {
             return None;
@@ -189,7 +190,34 @@ impl<'a> Iterator for SquareIterator<'a> {
         let x = self.x_start + (index % 3);
         let y = self.y_start + (index / 3);
 
-        Some(&self.board.rows[y].tiles[x])
+        Some((x, y))
+    }
+}
+
+#[derive(Clone)]
+pub struct SquareIter<'a> {
+    board: &'a Board,
+    iter: SquareIndexIter,
+}
+
+impl<'a> SquareIter<'a> {
+    pub fn new(board: &'a Board, n: usize) -> Self {
+        assert!(n < ROW_SIZE);
+        Self {
+            board,
+            iter: SquareIndexIter::new(n),
+        }
+    }
+}
+
+impl<'a> Iterator for SquareIter<'a> {
+    type Item = &'a Tile;
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some((x, y)) = self.iter.next() {
+            Some(&self.board.rows[y].tiles[x])
+        } else {
+            None
+        }
     }
 }
 
@@ -238,22 +266,22 @@ impl Board {
     }
 
     /// Get a single row of the board.
-    pub fn get_row<'a>(&'a self, n: usize) -> RowIterator<'a> {
+    pub fn get_row<'a>(&'a self, n: usize) -> RowIter<'a> {
         assert!(n < ROW_SIZE);
-        RowIterator::new(self, n)
+        RowIter::new(self, n)
     }
 
     /// Get a single column of the board.
-    pub fn get_column<'a>(&'a self, n: usize) -> ColumnIterator<'a> {
+    pub fn get_column<'a>(&'a self, n: usize) -> ColumnIter<'a> {
         assert!(n < ROW_SIZE);
-        ColumnIterator::new(self, n)
+        ColumnIter::new(self, n)
     }
 
     /// Get a 3x3 square of the board.
     /// TODO: Unit tests for this function.
-    pub fn get_square<'a>(&'a self, n: usize) -> SquareIterator<'a> {
+    pub fn get_square<'a>(&'a self, n: usize) -> SquareIter<'a> {
         assert!(n < ROW_SIZE);
-        SquareIterator::new(self, n)
+        SquareIter::new(self, n)
     }
 
     /// Set the value of the tile at the given coordinates.
@@ -369,6 +397,21 @@ mod tests {
         assert_eq!(to_square_index(2, 8), 6);
         assert_eq!(to_square_index(5, 8), 7);
         assert_eq!(to_square_index(8, 8), 8);
+    }
+
+    #[test]
+    fn test_square_index_iter() {
+        let mut iter = SquareIndexIter::new(4);
+        assert_eq!(iter.next(), Some((3, 3)));
+        assert_eq!(iter.next(), Some((4, 3)));
+        assert_eq!(iter.next(), Some((5, 3)));
+        assert_eq!(iter.next(), Some((3, 4)));
+        assert_eq!(iter.next(), Some((4, 4)));
+        assert_eq!(iter.next(), Some((5, 4)));
+        assert_eq!(iter.next(), Some((3, 5)));
+        assert_eq!(iter.next(), Some((4, 5)));
+        assert_eq!(iter.next(), Some((5, 5)));
+        assert_eq!(iter.next(), None);
     }
 
     #[test]

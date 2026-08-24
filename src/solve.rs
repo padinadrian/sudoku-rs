@@ -1,6 +1,6 @@
 //! Main entry point to solver
 
-use crate::board::{Board, ROW_SIZE, Row};
+use crate::board::{Board, ROW_SIZE, SquareIndexIter, to_square_index};
 use crate::debug::{print_board, print_notes};
 use crate::number::Number;
 
@@ -17,7 +17,10 @@ fn clear_note_for_column(board: &mut Board, column: usize, value: Number) {
 }
 
 fn clear_note_for_square(board: &mut Board, square: usize, value: Number) {
-    // TODO
+    let iter = SquareIndexIter::new(square);
+    for (column, row) in iter {
+        board.get_tile_mut(column, row).clear_note(value);
+    }
 }
 
 fn simplify_notes(board: &mut Board) {
@@ -26,7 +29,7 @@ fn simplify_notes(board: &mut Board) {
             if let Some(value) = board.rows[row].tiles[col].value {
                 clear_note_for_row(board, row, value);
                 clear_note_for_column(board, col, value);
-                // clear_note_for_square(board, ???, value);
+                clear_note_for_square(board, to_square_index(col, row), value);
             }
         }
     }
