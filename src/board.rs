@@ -2,9 +2,14 @@
 
 use crate::number::Number;
 use fixedbitset::FixedBitSet;
-use std::fmt;
+use std::{fmt, vec};
 
 pub const ROW_SIZE: usize = 9;
+
+/// Convert an x/y coordinate to an array index.
+fn to_index(x: usize, y: usize) -> usize {
+    return x + (y * ROW_SIZE);
+}
 
 /// Represents a single tile on the board which contains the value
 /// (set or unset) and the notes of possible values as a bitset.
@@ -41,6 +46,16 @@ impl Tile {
             ..Default::default()
         }
     }
+
+    /// Set a note for the given value on this tile.
+    pub fn set_note(&mut self, value: Number) {
+        self.notes.insert(value as usize - 1);
+    }
+
+    /// Clear a note for the given value on this tile.
+    pub fn clear_note(&mut self, value: Number) {
+        self.notes.remove(value as usize - 1);
+    }
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -64,22 +79,118 @@ pub struct Board {
 
 type SerializedRow = [u8; ROW_SIZE];
 
-/// Convert an x/y coordinate to an array index.
-fn to_index(x: usize, y: usize) -> usize {
-    return x + (y * ROW_SIZE);
+#[derive(Clone)]
+pub struct RowIterator<'a> {
+    board: &'a Board,
+    row: usize,
+    index: usize,
+}
+
+impl<'a> RowIterator<'a> {
+    pub fn new(board: &'a Board, row: usize) -> Self {
+        assert!(row < ROW_SIZE);
+        Self {
+            board,
+            row,
+            index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for RowIterator<'a> {
+    type Item = &'a Tile;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= ROW_SIZE {
+            return None;
+        }
+        let index = self.index;
+        self.index += 1;
+        Some(&self.board.rows[self.row].tiles[index])
+    }
+}
+
+#[derive(Clone)]
+pub struct ColumnIterator<'a> {
+    board: &'a Board,
+    column: usize,
+    index: usize,
+}
+
+impl<'a> ColumnIterator<'a> {
+    pub fn new(board: &'a Board, column: usize) -> Self {
+        assert!(column < ROW_SIZE);
+        Self {
+            board,
+            column,
+            index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for ColumnIterator<'a> {
+    type Item = &'a Tile;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= ROW_SIZE {
+            return None;
+        }
+        let index = self.index;
+        self.index += 1;
+        Some(&self.board.rows[index].tiles[self.column])
+    }
+}
+
+#[derive(Clone)]
+pub struct SquareIterator<'a> {
+    board: &'a Board,
+    x_start: usize,
+    y_start: usize,
+    index: usize,
+}
+
+impl<'a> SquareIterator<'a> {
+    pub fn new(board: &'a Board, n: usize) -> Self {
+        assert!(n < ROW_SIZE);
+        let x_start = (n % 3) * 3;
+        let y_start = (n / 3) * 3;
+        Self {
+            board,
+            x_start,
+            y_start,
+            index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for SquareIterator<'a> {
+    type Item = &'a Tile;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= ROW_SIZE {
+            return None;
+        }
+        let index = self.index;
+        self.index += 1;
+
+        let x = self.x_start + (index % 3);
+        let y = self.y_start + (index / 3);
+
+        Some(&self.board.rows[y].tiles[x])
+    }
 }
 
 /// Check if the row has exactly one of each sudoku value.
-fn row_is_solved(row: &Row) -> bool {
-    let any_blank = row.tiles.iter().any(|tile| tile.value.is_none());
+fn row_is_solved<'a, Iter>(mut tiles_iter: Iter) -> bool
+where
+    Iter: Iterator<Item = &'a Tile>,
+    Iter: Clone,
+{
+    let tiles_copy = tiles_iter.clone();
+    let any_blank = tiles_iter.any(|tile| tile.value.is_none());
     if any_blank {
         return false;
     }
 
     // Unwrap is safe because of the above check.
-    let values: Vec<Number> = row
-        .tiles
-        .iter()
+    let values: Vec<Number> = tiles_copy
         .map(|tile| tile.value.expect("Tile value should not be blank!"))
         .collect();
 
@@ -111,49 +222,22 @@ impl Board {
     }
 
     /// Get a single row of the board.
-    pub fn get_row(&self, n: usize) -> Option<Row> {
-        if n >= ROW_SIZE {
-            return None;
-        }
-        Some(self.rows[n].clone())
+    pub fn get_row<'a>(&'a self, n: usize) -> RowIterator<'a> {
+        assert!(n < ROW_SIZE);
+        RowIterator::new(self, n)
     }
 
     /// Get a single column of the board.
-    pub fn get_column(&self, n: usize) -> Option<Row> {
-        if n >= ROW_SIZE {
-            return None;
-        }
-        let mut col = Row::default();
-        for y in 0..ROW_SIZE {
-            col.tiles[y] = self.rows[y].tiles[n].clone();
-        }
-        Some(col)
+    pub fn get_column<'a>(&'a self, n: usize) -> ColumnIterator<'a> {
+        assert!(n < ROW_SIZE);
+        ColumnIterator::new(self, n)
     }
 
     /// Get a 3x3 square of the board.
     /// TODO: Unit tests for this function.
-    pub fn get_square(&self, n: usize) -> Option<Row> {
-        if n >= ROW_SIZE {
-            return None;
-        }
-        let mut square = Row::default();
-        let x_start = (n % 3) * 3;
-        let y_start = (n / 3) * 3;
-
-        // TODO: Use an iterator for this
-        square.tiles[0] = self.rows[y_start + 0].tiles[x_start + 0].clone();
-        square.tiles[1] = self.rows[y_start + 0].tiles[x_start + 1].clone();
-        square.tiles[2] = self.rows[y_start + 0].tiles[x_start + 2].clone();
-
-        square.tiles[3] = self.rows[y_start + 1].tiles[x_start + 0].clone();
-        square.tiles[4] = self.rows[y_start + 1].tiles[x_start + 1].clone();
-        square.tiles[5] = self.rows[y_start + 1].tiles[x_start + 2].clone();
-
-        square.tiles[6] = self.rows[y_start + 2].tiles[x_start + 0].clone();
-        square.tiles[7] = self.rows[y_start + 2].tiles[x_start + 1].clone();
-        square.tiles[8] = self.rows[y_start + 2].tiles[x_start + 2].clone();
-
-        Some(square)
+    pub fn get_square<'a>(&'a self, n: usize) -> SquareIterator<'a> {
+        assert!(n < ROW_SIZE);
+        SquareIterator::new(self, n)
     }
 
     /// Set the value of the tile at the given coordinates.
@@ -199,29 +283,17 @@ impl Board {
     /// Check if the board is solved and the game is finished.
     pub fn is_solved(&self) -> bool {
         for n in 0..ROW_SIZE {
-            if !row_is_solved(
-                &self
-                    .get_row(n)
-                    .expect(&format!("Row index {} out of bounds", n)),
-            ) {
+            if !row_is_solved(self.get_row(n)) {
                 return false;
             }
         }
         for n in 0..ROW_SIZE {
-            if !row_is_solved(
-                &self
-                    .get_column(n)
-                    .expect(&format!("Row index {} out of bounds", n)),
-            ) {
+            if !row_is_solved(self.get_column(n)) {
                 return false;
             }
         }
         for n in 0..ROW_SIZE {
-            if !row_is_solved(
-                &self
-                    .get_square(n)
-                    .expect(&format!("Row index {} out of bounds", n)),
-            ) {
+            if !row_is_solved(self.get_square(n)) {
                 return false;
             }
         }
@@ -266,12 +338,30 @@ mod tests {
 1,2,3,4,5,6,7,8,9";
 
     #[test]
+    fn test_board_get_value() {
+        let mut board = Board::default();
+        board.load_from_str(SOLVED_BOARD).unwrap();
+        assert_eq!(board.get_value(0, 0), Some(Number::One));
+        assert_eq!(board.get_value(1, 1), Some(Number::Five));
+        assert_eq!(board.get_value(2, 2), Some(Number::Nine));
+        assert_eq!(board.get_value(3, 3), Some(Number::Five));
+        assert_eq!(board.get_value(4, 4), Some(Number::Nine));
+        assert_eq!(board.get_value(5, 5), Some(Number::One));
+        assert_eq!(board.get_value(6, 6), Some(Number::Nine));
+        assert_eq!(board.get_value(7, 7), Some(Number::One));
+        assert_eq!(board.get_value(8, 8), Some(Number::Five));
+    }
+
+    #[test]
     fn test_board_get_row() {
         let mut board = Board::default();
         board.load_from_str(SOLVED_BOARD).unwrap();
         let expected_ints = [2, 3, 1, 5, 6, 4, 8, 9, 7];
-        let expected_tiles = expected_ints.map(|n| Tile::new(Number::from(n)));
-        assert_eq!(board.get_row(3).unwrap().tiles, expected_tiles);
+        let expected_numbers = expected_ints.map(|n| Number::from(n));
+        let mut row_iter = board.get_row(3);
+        let tiles: [Number; ROW_SIZE] =
+            std::array::from_fn(|_| row_iter.next().unwrap().value.unwrap());
+        assert_eq!(tiles, expected_numbers);
     }
 
     #[test]
@@ -279,8 +369,11 @@ mod tests {
         let mut board = Board::default();
         board.load_from_str(SOLVED_BOARD).unwrap();
         let expected_ints = [5, 8, 2, 6, 9, 3, 4, 7, 1];
-        let expected_tiles = expected_ints.map(|n| Tile::new(Number::from(n)));
-        assert_eq!(board.get_column(4).unwrap().tiles, expected_tiles);
+        let expected_numbers = expected_ints.map(|n| Number::from(n));
+        let mut column_iter = board.get_column(4);
+        let tiles: [Number; ROW_SIZE] =
+            std::array::from_fn(|_| column_iter.next().unwrap().value.unwrap());
+        assert_eq!(tiles, expected_numbers);
     }
 
     #[test]
@@ -288,8 +381,11 @@ mod tests {
         let mut board = Board::default();
         board.load_from_str(SOLVED_BOARD).unwrap();
         let expected_ints = [6, 4, 5, 9, 7, 8, 3, 1, 2];
-        let expected_tiles = expected_ints.map(|n| Tile::new(Number::from(n)));
-        assert_eq!(board.get_square(7).unwrap().tiles, expected_tiles);
+        let expected_numbers = expected_ints.map(|n| Number::from(n));
+        let mut square_iter = board.get_square(7);
+        let tiles: [Number; ROW_SIZE] =
+            std::array::from_fn(|_| square_iter.next().unwrap().value.unwrap());
+        assert_eq!(tiles, expected_numbers);
     }
 
     #[test]
