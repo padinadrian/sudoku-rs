@@ -4,17 +4,16 @@ use crate::board::{Board, ROW_SIZE, Row};
 use crate::debug::{print_board, print_notes};
 use crate::number::Number;
 
-fn clear_note_for_row(row: &mut Row, value: Number) {
-    for i in 0..ROW_SIZE {
-        row.tiles[i].clear_note(value);
+fn clear_note_for_row(board: &mut Board, row: usize, value: Number) {
+    for column in 0..ROW_SIZE {
+        board.get_tile_mut(column, row).clear_note(value);
     }
 }
 
 fn clear_note_for_column(board: &mut Board, column: usize, value: Number) {
-    // board
-    //     .get_column(column)
-    //     .iter()
-    //     .map(|&tile| tile.clear_note(value));
+    for row in 0..ROW_SIZE {
+        board.get_tile_mut(column, row).clear_note(value);
+    }
 }
 
 fn clear_note_for_square(board: &mut Board, square: usize, value: Number) {
@@ -25,7 +24,7 @@ fn simplify_notes(board: &mut Board) {
     for row in 0..ROW_SIZE {
         for col in 0..ROW_SIZE {
             if let Some(value) = board.rows[row].tiles[col].value {
-                clear_note_for_row(&mut board.rows[row], value);
+                clear_note_for_row(board, row, value);
                 clear_note_for_column(board, col, value);
                 // clear_note_for_square(board, ???, value);
             }

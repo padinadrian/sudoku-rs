@@ -11,6 +11,22 @@ fn to_index(x: usize, y: usize) -> usize {
     return x + (y * ROW_SIZE);
 }
 
+/// Convert an x/y coordinate to a square index.
+///
+/// Each sudoku board has 9 squares of 9 tiles each. The squares are numbered
+/// starting with the top-left corner and going from left-to-right and then from
+/// top-to-bottom, as such:
+///
+/// 0 | 1 | 2
+///
+/// 3 | 4 | 5
+///
+/// 6 | 7 | 8
+///
+fn to_square_index(x: usize, y: usize) -> usize {
+    ((x / 3) % 3) + ((y / 3) * 3)
+}
+
 /// Represents a single tile on the board which contains the value
 /// (set or unset) and the notes of possible values as a bitset.
 #[derive(Debug, Clone, PartialEq)]
@@ -336,6 +352,24 @@ mod tests {
 1,2,3,4,5,6,7,8,9
 1,2,3,4,5,6,7,8,9
 1,2,3,4,5,6,7,8,9";
+
+    #[test]
+    fn test_to_square_index() {
+        assert_eq!(to_square_index(0, 0), 0);
+        assert_eq!(to_square_index(1, 0), 0);
+        assert_eq!(to_square_index(2, 0), 0);
+        assert_eq!(to_square_index(3, 0), 1);
+        assert_eq!(to_square_index(7, 1), 2);
+        assert_eq!(to_square_index(0, 1), 0);
+        assert_eq!(to_square_index(0, 2), 0);
+        assert_eq!(to_square_index(0, 3), 3);
+        assert_eq!(to_square_index(3, 3), 4);
+        assert_eq!(to_square_index(4, 4), 4);
+        assert_eq!(to_square_index(8, 5), 5);
+        assert_eq!(to_square_index(2, 8), 6);
+        assert_eq!(to_square_index(5, 8), 7);
+        assert_eq!(to_square_index(8, 8), 8);
+    }
 
     #[test]
     fn test_board_get_value() {
