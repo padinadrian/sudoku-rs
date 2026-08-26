@@ -2,11 +2,13 @@
 
 use crate::number::Number;
 use fixedbitset::FixedBitSet;
-use std::{fmt, vec};
+use std::fmt;
 
 pub const ROW_SIZE: usize = 9;
 
 /// Convert an x/y coordinate to an array index.
+/// TODO(apadin): Dead code, may or may not be used.
+#[allow(dead_code)]
 fn to_index(x: usize, y: usize) -> usize {
     return x + (y * ROW_SIZE);
 }
@@ -31,8 +33,8 @@ pub fn to_square_index(x: usize, y: usize) -> usize {
 /// (set or unset) and the notes of possible values as a bitset.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tile {
-    pub notes: FixedBitSet,
-    pub value: Option<Number>,
+    notes: FixedBitSet,
+    value: Option<Number>,
 }
 
 impl fmt::Display for Tile {
@@ -55,15 +57,27 @@ impl Default for Tile {
 }
 
 impl Tile {
-    /// Construct a new tile with a given value.
-    pub fn new(value: Number) -> Self {
-        Self {
-            value: Some(value),
-            ..Default::default()
-        }
+    /// Get the current value of the tile, if any.
+    pub fn get_value(&self) -> Option<Number> {
+        self.value
+    }
+
+    /// Set this tile to the given value.
+    pub fn set_value(&mut self, value: Number) {
+        self.value = Some(value);
+    }
+
+    /// Get the list of notes that are set on this
+    pub fn get_notes(&self) -> Vec<Number> {
+        self.notes
+            .ones()
+            .map(|value| Number::from(value as u8 + 1))
+            .collect()
     }
 
     /// Set a note for the given value on this tile.
+    /// TODO(apadin): Dead code, will be used in gameplay.
+    #[allow(dead_code)]
     pub fn set_note(&mut self, value: Number) {
         self.notes.insert(value as usize - 1);
     }
@@ -77,15 +91,6 @@ impl Tile {
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Row {
     pub tiles: [Tile; ROW_SIZE],
-}
-
-impl Row {
-    /// Construct a new Row from a given list of values.
-    pub fn new(values: &[Number; ROW_SIZE]) -> Self {
-        Self {
-            tiles: values.map(Tile::new),
-        }
-    }
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -261,8 +266,10 @@ impl Board {
     }
 
     /// Get value of the tile at the given coordinates, if it exists.
+    /// TODO(apadin): Dead code, will be used in gameplay.
+    #[allow(dead_code)]
     pub fn get_value(&self, x: usize, y: usize) -> Option<Number> {
-        self.get_tile(x, y).value
+        self.get_tile(x, y).get_value()
     }
 
     /// Get a single row of the board.
@@ -309,6 +316,9 @@ impl Board {
         Ok(())
     }
 
+    /// Load a saved game from a serialized CSV-formatted string.
+    /// TODO(apadin): Dead code, used primarily for testing.
+    #[allow(dead_code)]
     pub fn load_from_str(&mut self, serialized: &str) -> color_eyre::Result<()> {
         let mut reader = csv::ReaderBuilder::new()
             .delimiter(b',')

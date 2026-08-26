@@ -30,11 +30,10 @@ pub fn print_notes(board: &Board) {
     for y in 0..ROW_SIZE {
         for x in 0..ROW_SIZE {
             let tile = board.get_tile(x, y);
-            if let Some(value) = tile.value {
+            if let Some(value) = tile.get_value() {
                 println!("({}, {}): {}", x, y, value);
             } else {
-                let notes: Vec<u8> = tile.notes.ones().map(|n| n as u8 + 1).collect();
-                println!("({}, {}): {:?}", x, y, notes);
+                println!("({}, {}): {:?}", x, y, tile.get_notes());
             }
         }
     }

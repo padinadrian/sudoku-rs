@@ -19,9 +19,7 @@ fn main() -> color_eyre::Result<()> {
     board.load_from_file("examples/easy.csv").unwrap();
 
     // crate::debug::print_board(&board);
-    let _ = crate::solve::solve(&mut board);
-
-    Ok(())
+    crate::solve::solve(&mut board)
 }
 
 #[cfg(test)]

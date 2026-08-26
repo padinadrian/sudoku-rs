@@ -26,10 +26,27 @@ fn clear_note_for_square(board: &mut Board, square: usize, value: Number) {
 fn simplify_notes(board: &mut Board) {
     for row in 0..ROW_SIZE {
         for col in 0..ROW_SIZE {
-            if let Some(value) = board.rows[row].tiles[col].value {
+            if let Some(value) = board.rows[row].tiles[col].get_value() {
                 clear_note_for_row(board, row, value);
                 clear_note_for_column(board, col, value);
                 clear_note_for_square(board, to_square_index(col, row), value);
+            }
+        }
+    }
+}
+
+/// Resolve any tiles that only have a single note and mark them with that value.
+fn resolve_single_notes(board: &mut Board) {
+    for row in 0..ROW_SIZE {
+        for col in 0..ROW_SIZE {
+            let tile = board.get_tile_mut(col, row);
+            if tile.get_value().is_none() {
+                let notes = tile.get_notes();
+                if notes.len() == 1 {
+                    let value = notes[0];
+                    tile.set_value(value);
+                    tile.clear_note(value);
+                }
             }
         }
     }
@@ -46,13 +63,18 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
 
     let mut prev_board = board.clone();
 
+    let mut counter = 0;
+
     while !board.is_solved() {
+        counter += 1;
+
         print_board(board);
         print_notes(board);
 
         // TODO... (everything)
 
         simplify_notes(board);
+        resolve_single_notes(board);
 
         // Actually TODO:
         // 1. Debug function to print board with all notes
@@ -60,10 +82,14 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
         // 3. Function to set values based on only one note left.
 
         if prev_board == *board {
+            println!("Failed to solve after {} iterations.", counter);
             return Err(eyre::eyre!("unsolvable!"));
         }
         prev_board = board.clone();
     }
+
+    print_board(board);
+    println!("Solved after {} iterations.", counter);
 
     Ok(())
 }
