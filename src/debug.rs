@@ -5,21 +5,22 @@ use crate::board::{Board, ROW_SIZE};
 /// FOR DEBUGGING ONLY
 pub fn print_board(board: &Board) {
     const ROW_SEPARATOR: &str = "-------------------------";
-    for (y, row) in board.rows.iter().enumerate() {
+    for y in 0..ROW_SIZE {
         if y % 3 == 0 {
             println!("{}", ROW_SEPARATOR);
         }
+        let row: Vec<_> = board.get_row(y).collect();
         println!(
             "| {} {} {} | {} {} {} | {} {} {} |",
-            row.tiles[0],
-            row.tiles[1],
-            row.tiles[2],
-            row.tiles[3],
-            row.tiles[4],
-            row.tiles[5],
-            row.tiles[6],
-            row.tiles[7],
-            row.tiles[8],
+            row[0], // Comment added for better auto-formatting
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            row[6],
+            row[7],
+            row[8],
         )
     }
     println!("{}", ROW_SEPARATOR);

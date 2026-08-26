@@ -90,12 +90,12 @@ impl Tile {
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Row {
-    pub tiles: [Tile; ROW_SIZE],
+    tiles: [Tile; ROW_SIZE],
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Board {
-    pub rows: [Row; ROW_SIZE],
+    rows: [Row; ROW_SIZE],
 }
 
 type SerializedRow = [u8; ROW_SIZE];
@@ -266,8 +266,6 @@ impl Board {
     }
 
     /// Get value of the tile at the given coordinates, if it exists.
-    /// TODO(apadin): Dead code, will be used in gameplay.
-    #[allow(dead_code)]
     pub fn get_value(&self, x: usize, y: usize) -> Option<Number> {
         self.get_tile(x, y).get_value()
     }

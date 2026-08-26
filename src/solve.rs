@@ -26,7 +26,7 @@ fn clear_note_for_square(board: &mut Board, square: usize, value: Number) {
 fn simplify_notes(board: &mut Board) {
     for row in 0..ROW_SIZE {
         for col in 0..ROW_SIZE {
-            if let Some(value) = board.rows[row].tiles[col].get_value() {
+            if let Some(value) = board.get_value(col, row) {
                 clear_note_for_row(board, row, value);
                 clear_note_for_column(board, col, value);
                 clear_note_for_square(board, to_square_index(col, row), value);
