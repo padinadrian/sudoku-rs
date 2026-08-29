@@ -1,0 +1,3 @@
+Iterations to solve:
+easy1: 43
+medium1: 45

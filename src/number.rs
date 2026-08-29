@@ -18,6 +18,18 @@ pub enum Number {
     Nine = 9,
 }
 
+pub const ALL_NUMBERS: [Number; 9] = [
+    Number::One,
+    Number::Two,
+    Number::Three,
+    Number::Four,
+    Number::Five,
+    Number::Six,
+    Number::Seven,
+    Number::Eight,
+    Number::Nine,
+];
+
 impl fmt::Display for Number {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", *self as u8)
@@ -27,17 +39,26 @@ impl fmt::Display for Number {
 impl From<u8> for Number {
     /// Will panic if value is out of range!
     fn from(value: u8) -> Self {
-        const LOOKUP: [Number; 9] = [
-            Number::One,
-            Number::Two,
-            Number::Three,
-            Number::Four,
-            Number::Five,
-            Number::Six,
-            Number::Seven,
-            Number::Eight,
-            Number::Nine,
-        ];
-        return LOOKUP[(value - 1) as usize];
+        assert!(value >= 1);
+        assert!(value <= 9);
+        return ALL_NUMBERS[(value - 1) as usize];
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_number_from_int() {
+        assert_eq!(Number::from(1), Number::One);
+        assert_eq!(Number::from(2), Number::Two);
+        assert_eq!(Number::from(3), Number::Three);
+        assert_eq!(Number::from(4), Number::Four);
+        assert_eq!(Number::from(5), Number::Five);
+        assert_eq!(Number::from(6), Number::Six);
+        assert_eq!(Number::from(7), Number::Seven);
+        assert_eq!(Number::from(8), Number::Eight);
+        assert_eq!(Number::from(9), Number::Nine);
     }
 }

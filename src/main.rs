@@ -15,8 +15,8 @@ fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     // ratatui::run(app)?;
 
-    let mut board = Board::default();
-    board.load_from_file("examples/medium.csv").unwrap();
+    let mut board = Board::new();
+    board.load_from_file("examples/medium1.csv").unwrap();
 
     // crate::debug::print_board(&board);
     crate::solve::solve(&mut board)

@@ -69,10 +69,14 @@ impl Tile {
 
     /// Get the list of notes that are set on this
     pub fn get_notes(&self) -> Vec<Number> {
-        self.notes
-            .ones()
-            .map(|value| Number::from(value as u8 + 1))
-            .collect()
+        if self.value.is_some() {
+            Vec::new()
+        } else {
+            self.notes
+                .ones()
+                .map(|value| Number::from(value as u8 + 1))
+                .collect()
+        }
     }
 
     /// Set a note for the given value on this tile.
@@ -160,7 +164,7 @@ impl<'a> Iterator for ColumnIter<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct SquareIndexIter {
     x_start: usize,
     y_start: usize,
@@ -255,6 +259,11 @@ where
 }
 
 impl Board {
+    /// Create a new blank board.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Get a ref to the tile at the given coordinates.
     pub fn get_tile(&self, x: usize, y: usize) -> &Tile {
         &self.rows[y].tiles[x]
