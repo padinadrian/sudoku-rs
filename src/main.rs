@@ -17,7 +17,7 @@ fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     // ratatui::run(app)?;
 
-    let filename = "examples/expert/expert1/expert1.csv";
+    let filename = "examples/master/master1/master1.csv";
     let mut board = Board::new();
     board.load_from_file(filename).unwrap();
 
