@@ -308,6 +308,7 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
 
         if prev_board == *board {
             print_board(board);
+            print_notes(board);
             println!("Failed to solve after {} iterations.", counter);
             return Err(eyre::eyre!("unsolvable!"));
         }
