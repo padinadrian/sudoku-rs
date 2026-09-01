@@ -86,6 +86,31 @@ impl Tile {
         self.notes.insert(value as usize - 1);
     }
 
+    /// Set a note for the given value on this tile.
+    /// TODO(apadin): Dead code, only used for testing.
+    #[allow(dead_code)]
+    pub fn set_note_u8(&mut self, value: u8) {
+        self.set_note(Number::from(value));
+    }
+
+    /// Set several notes for the given values on this tile.
+    /// TODO(apadin): Dead code, only used for testing.
+    #[allow(dead_code)]
+    pub fn set_notes(&mut self, values: &[Number]) {
+        for value in values {
+            self.set_note(*value);
+        }
+    }
+
+    /// Set several notes for the given values on this tile.
+    /// TODO(apadin): Dead code, only used for testing.
+    #[allow(dead_code)]
+    pub fn set_notes_u8(&mut self, values: &[u8]) {
+        for value in values {
+            self.set_note_u8(*value);
+        }
+    }
+
     /// Clear a note for the given value on this tile.
     pub fn clear_note(&mut self, value: Number) {
         self.notes.remove(value as usize - 1);

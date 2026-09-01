@@ -6,7 +6,7 @@ mod only_choice;
 use crate::board::{Board, ROW_SIZE, SquareIndexIter, to_square_index};
 use crate::debug::{print_board, print_notes};
 use crate::number::Number;
-// use obvious_doubles::check_obvious_doubles;
+use obvious_doubles::check_obvious_doubles;
 use only_choice::resolve_only_choice_remaining;
 
 /// Clear the given value from the notes of every tile in this row.
@@ -77,6 +77,8 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
     let mut counter = 0;
 
     while !board.is_solved() {
+        println!("\n");
+        println!("Iteration: {}", counter);
         counter += 1;
 
         // TODO: Debugging only, remove later
@@ -91,12 +93,17 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
         // Only do one of these at a time so we can keep track of the steps
         // more easily.
         if resolve_single_notes(board) {
+            println!("Resolved single note.");
             continue;
         }
         if resolve_only_choice_remaining(board) {
+            println!("Resolved only choice remaining.");
             continue;
         }
-        // check_obvious_doubles(board);
+        if check_obvious_doubles(board) {
+            println!("Obvious doubles found.");
+            continue;
+        }
 
         // Solver steps TODO:
         //  * Clear notes for only notes in a row/column in a given square
