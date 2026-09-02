@@ -115,6 +115,13 @@ impl Tile {
     pub fn clear_note(&mut self, value: Number) {
         self.notes.remove(value as usize - 1);
     }
+
+    /// Clear a set of notes for the given values on this tile.
+    pub fn clear_notes(&mut self, values: &[Number]) {
+        for value in values {
+            self.clear_note(*value);
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]

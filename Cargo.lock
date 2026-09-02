@@ -1330,6 +1330,7 @@ dependencies = [
  "ratatui",
  "serde",
  "serde_repr",
+ "tinyvec",
 ]
 
 [[package]]
@@ -1497,6 +1498,12 @@ name = "time-core"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b36ee98fd31ec7426d599183e8fe26932a8dc1fb76ddb6214d05493377d34ca"
+
+[[package]]
+name = "tinyvec"
+version = "1.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb4ebadaa0af04fab11ae01eb5f9fdb5f9c5b875506e210e71c07873528baa7f"
 
 [[package]]
 name = "tracing"

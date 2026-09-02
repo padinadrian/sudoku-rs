@@ -1,12 +1,14 @@
 //! Main entry point to solver
 
 mod obvious_doubles;
+mod obvious_triples;
 mod only_choice;
 
 use crate::board::{Board, ROW_SIZE, SquareIndexIter, to_square_index};
 use crate::debug::{print_board, print_notes};
 use crate::number::Number;
 use obvious_doubles::check_obvious_doubles;
+use obvious_triples::check_obvious_triples;
 use only_choice::resolve_only_choice_remaining;
 
 /// Clear the given value from the notes of every tile in this row.
@@ -101,7 +103,11 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
             continue;
         }
         if check_obvious_doubles(board) {
-            println!("Obvious doubles found.");
+            println!("Obvious double found.");
+            continue;
+        }
+        if check_obvious_triples(board) {
+            println!("Obvious triple found.");
             continue;
         }
 
