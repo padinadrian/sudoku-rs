@@ -51,6 +51,9 @@ fn simplify_notes(board: &mut Board) {
 
 /// Resolve tiles that only have a single note and mark them with that value.
 /// Stop after the first updated tile.
+///
+/// * `board` - Board to resolve
+///
 fn resolve_single_notes(board: &mut Board) -> bool {
     for row in 0..ROW_SIZE {
         for col in 0..ROW_SIZE {
@@ -69,6 +72,11 @@ fn resolve_single_notes(board: &mut Board) -> bool {
     false
 }
 
+/// Run one iteration of the solver to make a single change.
+/// Return true if a change was made, otherwise false.
+///
+/// * `board` - Board to resolve
+///
 fn solve_iteration(board: &mut Board) -> bool {
     // TODO: Debugging only, remove later
     // TODO: Debug function to print board with all notes
