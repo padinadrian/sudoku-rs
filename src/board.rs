@@ -67,16 +67,20 @@ impl Tile {
         self.value = Some(value);
     }
 
-    /// Get the list of notes that are set on this
-    pub fn get_notes(&self) -> Vec<Number> {
+    pub fn get_notes_u8(&self) -> Vec<u8> {
         if self.value.is_some() {
             Vec::new()
         } else {
-            self.notes
-                .ones()
-                .map(|value| Number::from(value as u8 + 1))
-                .collect()
+            self.notes.ones().map(|value| value as u8 + 1).collect()
         }
+    }
+
+    /// Get the list of notes that are set on this
+    pub fn get_notes(&self) -> Vec<Number> {
+        self.get_notes_u8()
+            .iter()
+            .map(|value| Number::from(*value))
+            .collect()
     }
 
     /// Set a note for the given value on this tile.
@@ -121,6 +125,11 @@ impl Tile {
         for value in values {
             self.clear_note(*value);
         }
+    }
+
+    /// Check if this tile has a note for the given value.
+    pub fn has_note(&self, value: Number) -> bool {
+        self.notes.contains(value as usize - 1)
     }
 }
 
@@ -461,6 +470,21 @@ mod tests {
         assert_eq!(iter.next(), Some((4, 5)));
         assert_eq!(iter.next(), Some((5, 5)));
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test_tile_has_note() {
+        let mut tile = Tile::default();
+        tile.set_notes_u8(&[1, 3, 5, 7, 8]);
+        assert!(tile.has_note(Number::One));
+        assert!(!tile.has_note(Number::Two));
+        assert!(tile.has_note(Number::Three));
+        assert!(!tile.has_note(Number::Four));
+        assert!(tile.has_note(Number::Five));
+        assert!(!tile.has_note(Number::Six));
+        assert!(tile.has_note(Number::Seven));
+        assert!(tile.has_note(Number::Eight));
+        assert!(!tile.has_note(Number::Nine));
     }
 
     #[test]

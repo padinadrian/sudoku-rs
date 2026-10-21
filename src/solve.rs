@@ -3,10 +3,12 @@
 mod obvious_doubles;
 mod obvious_triples;
 mod only_choice;
+mod sweeping_lines;
 
 use crate::board::{Board, ROW_SIZE, SquareIndexIter, to_square_index};
 use crate::debug::{print_board, print_notes};
 use crate::number::Number;
+use crate::solve::sweeping_lines::check_sweeping_lines;
 use obvious_doubles::check_obvious_doubles;
 use obvious_triples::check_obvious_triples;
 use only_choice::resolve_only_choice_remaining;
@@ -110,11 +112,12 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
             println!("Obvious triple found.");
             continue;
         }
+        if check_sweeping_lines(board) {
+            println!("Sweeping line found.");
+            continue;
+        }
 
         // Solver steps TODO:
-        //  * Clear notes for only notes in a row/column in a given square
-        //  * Clear notes for obvious doubles
-        //  * Clear notes for obvious triples
         //  * Find hidden doubles
         //  * Find hidden triples
         //  * X-ray
