@@ -1,10 +1,10 @@
 //! lib
 
-mod app;
+// mod app;
 mod board;
 mod debug;
 mod number;
-mod serialize;
+// mod serialize;
 
 pub mod solve;
 pub use board::Board;

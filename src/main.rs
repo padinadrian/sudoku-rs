@@ -2,14 +2,7 @@
 
 /* ===== Includes ===== */
 
-mod app;
-mod board;
-mod debug;
-mod number;
-mod serialize;
-mod solve;
-
-use board::Board;
+use sudoku::Board;
 
 /* ===== Main ===== */
 
@@ -22,7 +15,7 @@ fn main() -> color_eyre::Result<()> {
     board.load_from_file(filename).unwrap();
 
     // crate::debug::print_board(&board);
-    crate::solve::solve(&mut board)
+    sudoku::solve::solve(&mut board)
 }
 
 #[cfg(test)]
