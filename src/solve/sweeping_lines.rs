@@ -51,7 +51,7 @@ fn check_sweeping_lines_in_square(board: &mut Board, square: usize) -> bool {
                         let tile = board.get_tile_mut(column2, row);
                         if tile.has_note(value) {
                             tile.clear_note(value);
-                            change_made |= true;
+                            change_made = true;
                         }
                     }
                 }
@@ -68,7 +68,7 @@ fn check_sweeping_lines_in_square(board: &mut Board, square: usize) -> bool {
                         let tile = board.get_tile_mut(column, row2);
                         if tile.has_note(value) {
                             tile.clear_note(value);
-                            change_made |= true;
+                            change_made = true;
                         }
                     }
                 }
@@ -163,5 +163,127 @@ mod tests {
         assert_eq!(board.get_tile(7, 5).get_notes_u8(), vec![7, 8]);
         assert_eq!(board.get_tile(7, 6).get_notes_u8(), vec![6]);
         assert_eq!(board.get_tile(6, 3).get_notes_u8(), vec![6, 8]);
+    }
+
+    #[test]
+    fn check_sweeping_lines3() {
+        let mut board = Board::new();
+
+        // Row 0
+        board.get_tile_mut(0, 0).set_value_u8(2);
+        board.get_tile_mut(1, 0).set_value_u8(6);
+        board.get_tile_mut(2, 0).set_notes_u8(&[3, 8, 9]);
+        board.get_tile_mut(3, 0).set_value_u8(5);
+        board.get_tile_mut(4, 0).set_value_u8(1);
+        board.get_tile_mut(5, 0).set_value_u8(4);
+        board.get_tile_mut(6, 0).set_notes_u8(&[3, 8, 9]);
+        board.get_tile_mut(7, 0).set_value_u8(7);
+        board.get_tile_mut(8, 0).set_notes_u8(&[3, 8, 9]);
+
+        // Row 1
+        board.get_tile_mut(0, 1).set_notes_u8(&[5, 9]);
+        board.get_tile_mut(1, 1).set_notes_u8(&[1, 5, 8]);
+        board.get_tile_mut(2, 1).set_notes_u8(&[1, 5, 8, 9]);
+        board.get_tile_mut(3, 1).set_value_u8(3);
+        board.get_tile_mut(4, 1).set_value_u8(6);
+        board.get_tile_mut(5, 1).set_value_u8(7);
+        board.get_tile_mut(6, 1).set_notes_u8(&[1, 8, 9]);
+        board.get_tile_mut(7, 1).set_value_u8(2);
+        board.get_tile_mut(8, 1).set_value_u8(4);
+
+        // Row 2
+        board.get_tile_mut(0, 2).set_value_u8(4);
+        board.get_tile_mut(1, 2).set_notes_u8(&[1, 7]);
+        board.get_tile_mut(2, 2).set_notes_u8(&[1, 3, 7]);
+        board.get_tile_mut(3, 2).set_notes_u8(&[8, 9]);
+        board.get_tile_mut(4, 2).set_notes_u8(&[2, 8, 9]);
+        board.get_tile_mut(5, 2).set_notes_u8(&[2, 8, 9]);
+        board.get_tile_mut(6, 2).set_notes_u8(&[1, 3]);
+        board.get_tile_mut(7, 2).set_value_u8(6);
+        board.get_tile_mut(8, 2).set_value_u8(5);
+
+        // Row 3
+        board.get_tile_mut(0, 3).set_notes_u8(&[3, 5, 6, 7]);
+        board.get_tile_mut(1, 3).set_value_u8(9);
+        board.get_tile_mut(2, 3).set_notes_u8(&[4, 5, 6, 7]);
+        board.get_tile_mut(3, 3).set_notes_u8(&[7, 8]);
+        board.get_tile_mut(4, 3).set_notes_u8(&[5, 7, 8]);
+        board.get_tile_mut(5, 3).set_value_u8(1);
+        board.get_tile_mut(6, 3).set_value_u8(2);
+        board.get_tile_mut(7, 3).set_notes_u8(&[3, 4, 8]);
+        board.get_tile_mut(8, 3).set_notes_u8(&[3, 7, 8]);
+
+        // Row 4
+        board.get_tile_mut(0, 4).set_value_u8(8);
+        board.get_tile_mut(1, 4).set_notes_u8(&[1, 4, 7]);
+        board.get_tile_mut(2, 4).set_value_u8(2);
+        board.get_tile_mut(3, 4).set_value_u8(6);
+        board.get_tile_mut(4, 4).set_notes_u8(&[7, 9]);
+        board.get_tile_mut(5, 4).set_value_u8(3);
+        board.get_tile_mut(6, 4).set_value_u8(5);
+        board.get_tile_mut(7, 4).set_notes_u8(&[1, 4, 9]);
+        board.get_tile_mut(8, 4).set_notes_u8(&[1, 7, 9]);
+
+        // Row 5
+        board.get_tile_mut(0, 5).set_notes_u8(&[3, 5, 7]);
+        board.get_tile_mut(1, 5).set_notes_u8(&[1, 5, 7]);
+        board.get_tile_mut(2, 5).set_notes_u8(&[1, 5, 7]);
+        board.get_tile_mut(3, 5).set_value_u8(4);
+        board.get_tile_mut(4, 5).set_notes_u8(&[2, 5, 7, 8, 9]);
+        board.get_tile_mut(5, 5).set_notes_u8(&[2, 5, 8, 9]);
+        board.get_tile_mut(6, 5).set_value_u8(6);
+        board.get_tile_mut(7, 5).set_notes_u8(&[1, 3, 8, 9]);
+        board.get_tile_mut(8, 5).set_notes_u8(&[1, 3, 7, 8, 9]);
+
+        // Row 6
+        board.get_tile_mut(0, 6).set_value_u8(1);
+        board.get_tile_mut(1, 6).set_value_u8(3);
+        board.get_tile_mut(2, 6).set_notes_u8(&[4, 5, 7, 8, 9]);
+        board.get_tile_mut(3, 6).set_value_u8(2);
+        board.get_tile_mut(4, 6).set_notes_u8(&[5, 7, 8, 9]);
+        board.get_tile_mut(5, 6).set_value_u8(6);
+        board.get_tile_mut(6, 6).set_notes_u8(&[4, 7, 8, 9]);
+        board.get_tile_mut(7, 6).set_notes_u8(&[4, 8, 9]);
+        board.get_tile_mut(8, 6).set_notes_u8(&[7, 8, 9]);
+
+        // Row 7
+        board.get_tile_mut(0, 7).set_notes_u8(&[5, 6, 7, 9]);
+        board.get_tile_mut(1, 7).set_notes_u8(&[2, 5, 7, 8]);
+        board.get_tile_mut(2, 7).set_notes_u8(&[5, 6, 7, 8, 9]);
+        board.get_tile_mut(3, 7).set_notes_u8(&[1, 7, 8, 9]);
+        board.get_tile_mut(4, 7).set_value_u8(4);
+        board.get_tile_mut(5, 7).set_notes_u8(&[5, 8, 9]);
+        board.get_tile_mut(6, 7).set_notes_u8(&[3, 7, 8, 9]);
+        board.get_tile_mut(7, 7).set_notes_u8(&[1, 3, 8, 9]);
+        board
+            .get_tile_mut(8, 7)
+            .set_notes_u8(&[1, 2, 3, 6, 7, 8, 9]);
+
+        // Row 8
+        board.get_tile_mut(0, 8).set_notes_u8(&[6, 7, 9]);
+        board.get_tile_mut(1, 8).set_notes_u8(&[2, 4, 7, 8]);
+        board.get_tile_mut(2, 8).set_notes_u8(&[4, 6, 7, 8, 9]);
+        board.get_tile_mut(3, 8).set_notes_u8(&[1, 7, 8, 9]);
+        board.get_tile_mut(4, 8).set_value_u8(3);
+        board.get_tile_mut(5, 8).set_notes_u8(&[8, 9]);
+        board.get_tile_mut(6, 8).set_notes_u8(&[4, 7, 8, 9]);
+        board.get_tile_mut(7, 8).set_value_u8(5);
+        board.get_tile_mut(8, 8).set_notes_u8(&[1, 2, 6, 7, 8, 9]);
+
+        // Run check
+        check_sweeping_lines(&mut board);
+
+        assert_eq!(board.get_tile(6, 6).get_notes_u8(), vec![4, 7, 8, 9]);
+        assert_eq!(board.get_tile(7, 6).get_notes_u8(), vec![8, 9]);
+        assert_eq!(board.get_tile(8, 6).get_notes_u8(), vec![7, 8, 9]);
+        assert_eq!(board.get_tile(6, 7).get_notes_u8(), vec![3, 7, 8, 9]);
+        assert_eq!(board.get_tile(7, 7).get_notes_u8(), vec![1, 3, 8, 9]);
+        assert_eq!(
+            board.get_tile(8, 7).get_notes_u8(),
+            vec![1, 2, 3, 6, 7, 8, 9]
+        );
+        assert_eq!(board.get_tile(6, 8).get_notes_u8(), vec![4, 7, 8, 9]);
+        assert_eq!(board.get_tile(7, 8).get_notes_u8(), vec![]);
+        assert_eq!(board.get_tile(8, 8).get_notes_u8(), vec![1, 2, 6, 7, 8, 9]);
     }
 }

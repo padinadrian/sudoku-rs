@@ -69,6 +69,48 @@ fn resolve_single_notes(board: &mut Board) -> bool {
     false
 }
 
+fn solve_iteration(board: &mut Board) -> bool {
+    // TODO: Debugging only, remove later
+    // TODO: Debug function to print board with all notes
+    print_board(board);
+    print_notes(board);
+
+    // Always do this step because it doesn't set any values, it only
+    // changes the notes.
+    simplify_notes(board);
+
+    // Only do one of these at a time so we can keep track of the steps
+    // more easily.
+    if resolve_single_notes(board) {
+        println!("Resolved single note.");
+        return true;
+    }
+    if resolve_only_choice_remaining(board) {
+        println!("Resolved only choice remaining.");
+        return true;
+    }
+    if check_obvious_doubles(board) {
+        println!("Obvious double found.");
+        return true;
+    }
+    if check_obvious_triples(board) {
+        println!("Obvious triple found.");
+        return true;
+    }
+    if check_sweeping_lines(board) {
+        println!("Sweeping line found.");
+        return true;
+    }
+
+    // Solver steps TODO:
+    //  * Find hidden doubles
+    //  * Find hidden triples
+    //  * X-ray
+    //  * Bowman's bingo
+
+    return false;
+}
+
 /// Solve the board
 /// Returns Ok() on success or Err on failure.
 pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
@@ -85,45 +127,11 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
         println!("Iteration: {}", counter);
         counter += 1;
 
-        // TODO: Debugging only, remove later
-        // TODO: Debug function to print board with all notes
-        print_board(board);
-        print_notes(board);
-
-        // Always do this step because it doesn't set any values, it only
-        // changes the notes.
-        simplify_notes(board);
-
-        // Only do one of these at a time so we can keep track of the steps
-        // more easily.
-        if resolve_single_notes(board) {
-            println!("Resolved single note.");
-            continue;
-        }
-        if resolve_only_choice_remaining(board) {
-            println!("Resolved only choice remaining.");
-            continue;
-        }
-        if check_obvious_doubles(board) {
-            println!("Obvious double found.");
-            continue;
-        }
-        if check_obvious_triples(board) {
-            println!("Obvious triple found.");
-            continue;
-        }
-        if check_sweeping_lines(board) {
-            println!("Sweeping line found.");
-            continue;
-        }
-
-        // Solver steps TODO:
-        //  * Find hidden doubles
-        //  * Find hidden triples
-        //  * X-ray
-        //  * Bowman's bingo
+        let changed = solve_iteration(board);
+        println!("Board changed? {}", changed);
 
         if prev_board == *board {
+            println!("Boards did not change.");
             print_board(board);
             print_notes(board);
             println!("Failed to solve after {} iterations.", counter);

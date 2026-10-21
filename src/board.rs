@@ -67,20 +67,28 @@ impl Tile {
         self.value = Some(value);
     }
 
+    /// Set this tile to the given value as u8.
+    /// TODO(apadin): Dead code, only used for testing.
+    #[allow(dead_code)]
+    pub fn set_value_u8(&mut self, value: u8) {
+        self.value = Some(Number::from(value));
+    }
+
+    /// Get the list of notes that are set on this tile.
+    pub fn get_notes(&self) -> Vec<Number> {
+        self.get_notes_u8()
+            .iter()
+            .map(|value| Number::from(*value))
+            .collect()
+    }
+
+    /// Get the list of notes that are set on this tile as u8.
     pub fn get_notes_u8(&self) -> Vec<u8> {
         if self.value.is_some() {
             Vec::new()
         } else {
             self.notes.ones().map(|value| value as u8 + 1).collect()
         }
-    }
-
-    /// Get the list of notes that are set on this
-    pub fn get_notes(&self) -> Vec<Number> {
-        self.get_notes_u8()
-            .iter()
-            .map(|value| Number::from(*value))
-            .collect()
     }
 
     /// Set a note for the given value on this tile.
@@ -129,7 +137,11 @@ impl Tile {
 
     /// Check if this tile has a note for the given value.
     pub fn has_note(&self, value: Number) -> bool {
-        self.notes.contains(value as usize - 1)
+        if self.value.is_some() {
+            false
+        } else {
+            self.notes.contains(value as usize - 1)
+        }
     }
 }
 

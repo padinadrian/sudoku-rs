@@ -34,7 +34,7 @@ pub fn print_notes(board: &Board) {
             if let Some(value) = tile.get_value() {
                 println!("({}, {}): {}", x, y, value);
             } else {
-                println!("({}, {}): {:?}", x, y, tile.get_notes());
+                println!("({}, {}): {:?}", x, y, tile.get_notes_u8());
             }
         }
     }
