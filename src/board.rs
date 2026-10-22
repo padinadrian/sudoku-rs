@@ -6,13 +6,6 @@ use std::fmt;
 
 pub const ROW_SIZE: usize = 9;
 
-/// Convert an x/y coordinate to an array index.
-/// TODO(apadin): Dead code, may or may not be used.
-#[allow(dead_code)]
-fn to_index(x: usize, y: usize) -> usize {
-    return x + (y * ROW_SIZE);
-}
-
 /// Convert an x/y coordinate to a square index.
 ///
 /// Each sudoku board has 9 squares of 9 tiles each. The squares are numbered
@@ -345,7 +338,6 @@ impl Board {
     }
 
     /// Get a 3x3 square of the board.
-    /// TODO: Unit tests for this function.
     pub fn get_square<'a>(&'a self, n: usize) -> SquareIter<'a> {
         assert!(n < ROW_SIZE);
         SquareIter::new(self, n)
@@ -377,7 +369,7 @@ impl Board {
     }
 
     /// Load a saved game from a serialized CSV-formatted string.
-    /// TODO(apadin): Dead code, used primarily for testing.
+    /// TODO(apadin): Dead code, only used for testing.
     #[allow(dead_code)]
     pub fn load_from_str(&mut self, serialized: &str) -> color_eyre::Result<()> {
         let mut reader = csv::ReaderBuilder::new()

@@ -22,15 +22,7 @@ fn matching_tiles(board: &Board, square: usize, value: Number) -> Vec<(usize, us
         .collect()
 }
 
-/// Check for "sweeping lines" in the board at the given square.
-///
-/// A sweeping line is where the only tiles with a given
-/// note value in a square all fall in the same row or column.
-/// (Since this excludes single values, there will be 2 or 3 tiles in a line.)
-///
-/// In this scenario, since the number for that square must be in one of those
-/// tiles, the other tiles in that row or column cannot contain that number,
-/// so those notes can be cleared of that value.
+/// Check for sweeping lines in the board at the given square.
 ///
 /// * `board` - Board to check and update
 /// * `square` - Index of the square to check (0 through 8 inclusive)
@@ -81,6 +73,18 @@ fn check_sweeping_lines_in_square(board: &mut Board, square: usize) -> bool {
     false
 }
 
+/// Check for "sweeping lines" in the board.
+///
+/// A sweeping line is where the only tiles with a given note value in a square
+/// all fall in the same row or column.
+/// (Since this excludes single values, there will be 2 or 3 tiles in a line.)
+///
+/// In this scenario, since the number for that square must be in one of those
+/// tiles, the other tiles in that row or column cannot contain that number,
+/// so those notes can be cleared of that value.
+///
+/// * `board` - Board to check and update
+///
 pub fn check_sweeping_lines(board: &mut Board) -> bool {
     for square in 0..ROW_SIZE {
         if check_sweeping_lines_in_square(board, square) {
@@ -126,7 +130,7 @@ mod tests {
     /* ===== Tests for check_sweeping_lines_in_square() =====  */
 
     #[test]
-    fn check_sweeping_lines_in_square1() {
+    fn test_check_sweeping_lines_in_square1() {
         let mut board = Board::new();
         board.get_tile_mut(0, 0).set_notes_u8(&[1, 2, 3]);
         board.get_tile_mut(1, 0).set_notes_u8(&[1, 2]);
@@ -145,7 +149,7 @@ mod tests {
     }
 
     #[test]
-    fn check_sweeping_lines_in_square2() {
+    fn test_check_sweeping_lines_in_square2() {
         let mut board = Board::new();
         board.get_tile_mut(7, 2).set_notes_u8(&[6, 7, 8]);
         board.get_tile_mut(7, 3).set_notes_u8(&[6, 7, 8]);
@@ -165,8 +169,10 @@ mod tests {
         assert_eq!(board.get_tile(6, 3).get_notes_u8(), vec![6, 8]);
     }
 
+    /* ===== Tests for check_sweeping_lines() =====  */
+
     #[test]
-    fn check_sweeping_lines3() {
+    fn test_check_sweeping_lines() {
         let mut board = Board::new();
 
         // Row 0
