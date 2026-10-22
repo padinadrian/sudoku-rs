@@ -63,23 +63,23 @@ fn solve_iteration(board: &mut Board) -> bool {
     // Only do one of these at a time so we can keep track of the steps
     // more easily.
     if resolve_single_notes(board) {
-        println!("Resolved single note.");
+        // println!("Resolved single note.");
         return true;
     }
     if resolve_only_choice_remaining(board) {
-        println!("Resolved only choice remaining.");
+        // println!("Resolved only choice remaining.");
         return true;
     }
     if check_obvious_doubles(board) {
-        println!("Obvious double found.");
+        // println!("Obvious double found.");
         return true;
     }
     if check_obvious_triples(board) {
-        println!("Obvious triple found.");
+        // println!("Obvious triple found.");
         return true;
     }
     if check_sweeping_lines(board) {
-        println!("Sweeping line found.");
+        // println!("Sweeping line found.");
         return true;
     }
 
@@ -104,15 +104,13 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
     let mut counter = 0;
 
     while !board.is_solved() {
-        println!("\n");
-        println!("Iteration: {}", counter);
+        // println!("Iteration: {}", counter);
         counter += 1;
 
-        let changed = solve_iteration(board);
-        println!("Board changed? {}", changed);
+        let _changed = solve_iteration(board);
+        // println!("Board changed? {}", changed);
 
         if prev_board == *board {
-            println!("Boards did not change.");
             print_board(board);
             print_notes(board);
             println!("Failed to solve after {} iterations.", counter);

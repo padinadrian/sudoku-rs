@@ -2,3 +2,5 @@ Iterations to solve:
 easy1: 43
 medium1: 45
 hard1: 51
+extreme1: 68
+random1: 51

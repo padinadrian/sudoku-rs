@@ -3,6 +3,7 @@
 use crate::number::Number;
 use fixedbitset::FixedBitSet;
 use std::fmt;
+use std::path::PathBuf;
 
 pub const ROW_SIZE: usize = 9;
 
@@ -349,7 +350,7 @@ impl Board {
     }
 
     /// Load a saved game from a CSV file.
-    pub fn load_from_file(&mut self, path: &str) -> color_eyre::Result<()> {
+    pub fn load_from_file(&mut self, path: &PathBuf) -> color_eyre::Result<()> {
         let mut reader = csv::ReaderBuilder::new()
             .delimiter(b',')
             .has_headers(false)
