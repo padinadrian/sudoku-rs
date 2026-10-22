@@ -1,7 +1,6 @@
 //! Integration tests for sudoku solver.
 
 use std::path::PathBuf;
-
 use sudoku::Board;
 
 #[test]
