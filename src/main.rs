@@ -3,6 +3,7 @@
 /* ===== Includes ===== */
 
 use clap::{Parser, Subcommand};
+use eyre;
 use std::path::PathBuf;
 use sudoku::Board;
 
@@ -14,7 +15,7 @@ enum Command {
     /// Play a game
     Play { filename: PathBuf },
 
-    /// Run the solver
+    /// Solve an existing puzzle from file
     Solve { filename: PathBuf },
 }
 
@@ -38,7 +39,10 @@ fn main() -> color_eyre::Result<()> {
             color_eyre::Result::Ok(())
         }
         Command::Solve { filename } => {
-            println!("Solving file: {:?}", filename.to_str());
+            if !filename.is_file() {
+                return Err(eyre::eyre!("Provided path was not a file: {:?}", filename));
+            }
+            println!("Solving file: {:?}", filename);
             let mut board = Board::new();
             board.load_from_file(&filename).expect("Unable to solve");
             sudoku::solve::solve(&mut board)

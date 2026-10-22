@@ -27,7 +27,7 @@ pub fn print_board(board: &Board) {
 }
 
 pub fn print_notes(board: &Board) {
-    println!("Print notes!");
+    println!("Printing notes:");
     for y in 0..ROW_SIZE {
         for x in 0..ROW_SIZE {
             let tile = board.get_tile(x, y);

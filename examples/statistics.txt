@@ -2,5 +2,7 @@ Iterations to solve:
 easy1: 43
 medium1: 45
 hard1: 51
-extreme1: 68
+expert1: 53
+master1: 57
+extreme1: 67
 random1: 51
