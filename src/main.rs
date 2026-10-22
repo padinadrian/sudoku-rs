@@ -1,4 +1,9 @@
-//! Main
+//! Sudoku player and solver.
+//!
+//! This program has two modes:
+//! * `play` - Play a game
+//! * `solve` - Solve an existing puzzle
+//!
 
 /* ===== Includes ===== */
 
@@ -7,15 +12,15 @@ use eyre;
 use std::path::PathBuf;
 use sudoku::Board;
 
-/* ===== Main ===== */
+/* ===== Command-line Arguments ===== */
 
 /// Sub-command
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Play a game
+    /// Play a game.
     Play { filename: PathBuf },
 
-    /// Solve an existing puzzle from file
+    /// Solve an existing puzzle from file.
     Solve { filename: PathBuf },
 }
 
@@ -27,15 +32,17 @@ struct Args {
     command: Command,
 }
 
+/* ===== Main ===== */
+
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
-    // ratatui::run(app)?;
 
     let args = Args::parse();
 
     match args.command {
         Command::Play { filename: _ } => {
             // TODO
+            // ratatui::run(app)?;
             color_eyre::Result::Ok(())
         }
         Command::Solve { filename } => {
@@ -49,6 +56,3 @@ fn main() -> color_eyre::Result<()> {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {}
