@@ -5,35 +5,13 @@ mod obvious_triples;
 mod only_choice;
 mod sweeping_lines;
 
-use crate::board::{Board, ROW_SIZE, SquareIndexIter, to_square_index};
+use crate::board::{Board, ROW_SIZE, to_square_index};
 use crate::debug::{print_board, print_notes};
-use crate::number::Number;
+use crate::helpers::{clear_note_for_column, clear_note_for_row, clear_note_for_square};
 use crate::solve::sweeping_lines::check_sweeping_lines;
 use obvious_doubles::check_obvious_doubles;
 use obvious_triples::check_obvious_triples;
 use only_choice::resolve_only_choice_remaining;
-
-/// Clear the given value from the notes of every tile in this row.
-fn clear_note_for_row(board: &mut Board, row: usize, value: Number) {
-    for column in 0..ROW_SIZE {
-        board.get_tile_mut(column, row).clear_note(value);
-    }
-}
-
-/// Clear the given value from the notes of every tile in this Column.
-fn clear_note_for_column(board: &mut Board, column: usize, value: Number) {
-    for row in 0..ROW_SIZE {
-        board.get_tile_mut(column, row).clear_note(value);
-    }
-}
-
-/// Clear the given value from the notes of every tile in this square.
-fn clear_note_for_square(board: &mut Board, square: usize, value: Number) {
-    let iter = SquareIndexIter::new(square);
-    for (column, row) in iter {
-        board.get_tile_mut(column, row).clear_note(value);
-    }
-}
 
 /// Clear the notes for tiles that have another tile in the same row, column,
 /// or square that already have that value set.
@@ -78,11 +56,6 @@ fn resolve_single_notes(board: &mut Board) -> bool {
 /// * `board` - Board to resolve
 ///
 fn solve_iteration(board: &mut Board) -> bool {
-    // TODO: Debugging only, remove later
-    // TODO: Debug function to print board with all notes
-    print_board(board);
-    print_notes(board);
-
     // Always do this step because it doesn't set any values, it only
     // changes the notes.
     simplify_notes(board);
@@ -157,16 +130,14 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::number::Number;
 
     #[test]
     fn test_resolve_single_notes() {
         let mut board = Board::new();
-        board.get_tile_mut(0, 0).set_note(Number::Seven);
-        board.get_tile_mut(0, 1).set_note(Number::Seven);
-        board.get_tile_mut(0, 1).set_note(Number::Eight);
-        board.get_tile_mut(0, 2).set_note(Number::Seven);
-        board.get_tile_mut(0, 2).set_note(Number::Eight);
-        board.get_tile_mut(0, 2).set_note(Number::Nine);
+        board.get_tile_mut(0, 0).set_note_u8(7);
+        board.get_tile_mut(0, 1).set_notes_u8(&[7, 8]);
+        board.get_tile_mut(0, 2).set_notes_u8(&[7, 8, 9]);
 
         resolve_single_notes(&mut board);
         assert_eq!(board.get_tile(0, 0).get_value(), Some(Number::Seven));

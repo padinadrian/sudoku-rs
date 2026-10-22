@@ -3,6 +3,7 @@
 // mod app;
 mod board;
 mod debug;
+mod helpers;
 mod number;
 // mod serialize;
 
