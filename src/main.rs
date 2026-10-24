@@ -21,7 +21,7 @@ enum Command {
     Solve { filename: PathBuf },
 }
 
-/// sudoku-rs - A sudoku solver and game player built in Rust.
+/// sudoku-rs - Sudoku solver and game player, built in Rust.
 #[derive(Debug, Parser)]
 #[command(version)]
 struct Args {

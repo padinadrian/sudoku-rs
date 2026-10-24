@@ -1,11 +1,11 @@
 # sudoku-rs
-### A sudoku solver and game player, built in Rust
+### Sudoku solver and game player, built in Rust
 
 ## Supported Features
 
 ### Solver
 * Solve any sudoku puzzle.
-* Puzzles can be loaded from file
+* Puzzles can be loaded from file.
 * See `examples` folder for examples of how to format game files.
 
 ### Player
