@@ -31,6 +31,11 @@ fn test_hard1() {
 }
 
 #[test]
+fn test_hard2() {
+    run_solve_test("examples/hard/hard2.csv", "examples/hard/hard2_solved.csv");
+}
+
+#[test]
 fn test_expert1() {
     run_solve_test(
         "examples/expert/expert1.csv",
@@ -67,5 +72,13 @@ fn test_random1() {
     run_solve_test(
         "examples/random/random1.csv",
         "examples/random/random1_solved.csv",
+    );
+}
+
+#[test]
+fn test_random2() {
+    run_solve_test(
+        "examples/random/random2.csv",
+        "examples/random/random2_solved.csv",
     );
 }

@@ -18,7 +18,11 @@ enum Command {
     Play { filename: PathBuf },
 
     /// Solve an existing puzzle from file.
-    Solve { filename: PathBuf },
+    Solve {
+        filename: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
 }
 
 /// sudoku-rs - Sudoku solver and game player, built in Rust.
@@ -44,13 +48,19 @@ fn main() -> color_eyre::Result<()> {
                 // ratatui::run(app)?;
                 Ok(())
             }
-            Command::Solve { filename } => {
+            Command::Solve { filename, output } => {
                 if !filename.is_file() {
                     return Err(eyre::eyre!("Provided path was not a file: {:?}", filename));
                 }
                 println!("Solving file: {:?}", filename);
                 let mut board = Board::from_file(&filename)?;
-                sudoku::solve::solve(&mut board)
+                let result = sudoku::solve::solve(&mut board);
+                if result.is_ok() {
+                    if let Some(output_file) = output {
+                        board.save_to_file(&output_file)?;
+                    }
+                }
+                result
             }
         }
     } else {

@@ -394,6 +394,21 @@ impl Board {
         Ok(())
     }
 
+    /// Save a game to a CSV file.
+    pub fn save_to_file(&self, path: &PathBuf) -> color_eyre::Result<()> {
+        let mut writer = csv::WriterBuilder::new()
+            .delimiter(b',')
+            .has_headers(false)
+            .from_path(path)?;
+
+        for x in 0..ROW_SIZE {
+            let row: Vec<Option<Number>> = self.get_row(x).map(|tile| tile.get_value()).collect();
+            writer.serialize(&row)?;
+        }
+        writer.flush()?;
+        Ok(())
+    }
+
     /// Check if the board is solved and the game is finished.
     pub fn is_solved(&self) -> bool {
         for n in 0..ROW_SIZE {
