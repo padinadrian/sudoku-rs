@@ -14,17 +14,16 @@ use sudoku::Board;
 
 /* ===== Command-line Arguments ===== */
 
-/// Sub-command
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Play a game.
+    /// Play a game (not yet implemented).
     Play { filename: PathBuf },
 
     /// Solve an existing puzzle from file.
     Solve { filename: PathBuf },
 }
 
-/// Command-line arguments
+/// sudoku-rs - A sudoku solver and game player built in Rust.
 #[derive(Debug, Parser)]
 struct Args {
     /// Subcommand
