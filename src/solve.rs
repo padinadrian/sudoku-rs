@@ -13,6 +13,71 @@ use obvious_doubles::check_obvious_doubles;
 use obvious_triples::check_obvious_triples;
 use only_choice::resolve_only_choice_remaining;
 
+/// Solve the board
+/// Returns Ok() on success or Err on failure.
+///
+pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
+    if board.is_solved() {
+        return Ok(());
+    }
+
+    // Only do this once
+    board.fill_all_notes();
+
+    let mut counter = 0;
+    let result = solve_loop(board, &mut counter);
+
+    match result {
+        Ok(_) => {
+            print_board(board);
+            println!("Solved after {} iterations.", counter);
+        }
+        Err(e) => {
+            print_board(board);
+            println!("Failed to solve after {} iterations.", counter);
+            println!("Result: {}", e);
+        }
+    };
+
+    Ok(())
+}
+
+/// Run the loop of trying to solve the puzzle.
+///
+/// * `board` - Board to solve
+/// * `counter` - Running count of iterations
+///
+fn solve_loop(board: &mut Board, counter: &mut u32) -> color_eyre::Result<()> {
+    let mut prev_board = board.clone();
+
+    while !board.is_solved() {
+        println!("Iteration: {}", counter);
+        *counter += 1;
+
+        let _changed = solve_iteration(board);
+
+        if is_unsolvable(board) {
+            return Err(eyre::eyre!("Unsolvable"));
+        }
+
+        if prev_board == *board {
+            // No progress made from heuristic methods
+            // Fall back to Bowman's Bingo - i.e. guess and check
+            let result = bowmans_bingo(board, counter);
+
+            if result.is_err() {
+                print_board(board);
+                print_notes(board);
+                println!("Failed to solve after {} iterations.", counter);
+                return result;
+            }
+        }
+        prev_board = board.clone();
+    }
+
+    Ok(())
+}
+
 /// Clear the notes for tiles that have another tile in the same row, column,
 /// or square that already have that value set.
 fn simplify_notes(board: &mut Board) {
@@ -110,7 +175,8 @@ fn solve_iteration(board: &mut Board) -> bool {
 }
 
 /// Run the Bowman's Bingo algorithm - in other words, guess and check.
-pub fn bowmans_bingo(board: &mut Board) -> color_eyre::Result<()> {
+///
+pub fn bowmans_bingo(board: &mut Board, counter: &mut u32) -> color_eyre::Result<()> {
     // Find an unsolved tile and pick one of the notes to guess
     let find_guess = || {
         for y in 0..ROW_SIZE {
@@ -128,7 +194,7 @@ pub fn bowmans_bingo(board: &mut Board) -> color_eyre::Result<()> {
         let board_copy = board.clone();
         println!("Bowman's Bingo: trying ({}, {}) -> {}", x, y, value);
         board.get_tile_mut(x, y).set_value(value);
-        let result = solve(board);
+        let result = solve_loop(board, counter);
         if result.is_ok() {
             return Ok(());
         } else {
@@ -136,48 +202,6 @@ pub fn bowmans_bingo(board: &mut Board) -> color_eyre::Result<()> {
         }
     }
     Err(eyre::eyre!("Bowman's Bingo failed"))
-}
-
-/// Solve the board
-/// Returns Ok() on success or Err on failure.
-pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
-    if board.is_solved() {
-        return Ok(());
-    }
-    board.fill_all_notes();
-
-    let mut prev_board = board.clone();
-    let mut counter = 0;
-
-    while !board.is_solved() {
-        // println!("Iteration: {}", counter);
-        counter += 1;
-
-        let _changed = solve_iteration(board);
-
-        if is_unsolvable(board) {
-            return Err(eyre::eyre!("Unsolvable"));
-        }
-
-        if prev_board == *board {
-            // No progress made from heuristic methods
-            // Fall back to Bowman's Bingo - i.e. guess and check
-            let result = bowmans_bingo(board);
-
-            if result.is_err() {
-                print_board(board);
-                print_notes(board);
-                println!("Failed to solve after {} iterations.", counter);
-                return result;
-            }
-        }
-        prev_board = board.clone();
-    }
-
-    print_board(board);
-    println!("Solved after {} iterations.", counter);
-
-    Ok(())
 }
 
 #[cfg(test)]
