@@ -14,15 +14,18 @@
 ## Usage
 
 ```
-Usage: sudoku <COMMAND>
+sudoku-rs - Sudoku solver and game player, built in Rust
+
+Usage: sudoku [COMMAND]
 
 Commands:
-  play   Play a game
+  play   Play a game (not yet implemented)
   solve  Solve an existing puzzle from file
   help   Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help  Print help
+  -h, --help     Print help
+  -V, --version  Print version
 ```
 
 #### solve
@@ -30,13 +33,14 @@ Options:
 ```
 Solve an existing puzzle from file
 
-Usage: sudoku solve <FILENAME>
+Usage: sudoku solve [OPTIONS] <FILENAME>
 
 Arguments:
   <FILENAME>
 
 Options:
-  -h, --help  Print help
+  -o, --output <OUTPUT>  Optional output file to save result
+  -h, --help             Print help
 ```
 
 ## License

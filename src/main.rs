@@ -20,6 +20,7 @@ enum Command {
     /// Solve an existing puzzle from file.
     Solve {
         filename: PathBuf,
+        /// Optional output file to save result
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
