@@ -34,6 +34,7 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
         }
         Err(e) => {
             print_board(board);
+            print_notes(board);
             println!("Failed to solve after {} iterations.", counter);
             println!("Result: {}", e);
         }
@@ -51,7 +52,6 @@ fn solve_loop(board: &mut Board, counter: &mut u32) -> color_eyre::Result<()> {
     let mut prev_board = board.clone();
 
     while !board.is_solved() {
-        println!("Iteration: {}", counter);
         *counter += 1;
 
         let _changed = solve_iteration(board);
@@ -62,15 +62,8 @@ fn solve_loop(board: &mut Board, counter: &mut u32) -> color_eyre::Result<()> {
 
         if prev_board == *board {
             // No progress made from heuristic methods
-            // Fall back to Bowman's Bingo - i.e. guess and check
-            let result = bowmans_bingo(board, counter);
-
-            if result.is_err() {
-                print_board(board);
-                print_notes(board);
-                println!("Failed to solve after {} iterations.", counter);
-                return result;
-            }
+            // Fall back to Bowman's Bingo
+            return bowmans_bingo(board, counter);
         }
         prev_board = board.clone();
     }
@@ -177,7 +170,7 @@ fn solve_iteration(board: &mut Board) -> bool {
 /// Run the Bowman's Bingo algorithm - in other words, guess and check.
 ///
 pub fn bowmans_bingo(board: &mut Board, counter: &mut u32) -> color_eyre::Result<()> {
-    // Find an unsolved tile and pick one of the notes to guess
+    // Find an unsolved tile and check each possible note value.
     let find_guess = || {
         for y in 0..ROW_SIZE {
             for x in 0..ROW_SIZE {
@@ -192,7 +185,6 @@ pub fn bowmans_bingo(board: &mut Board, counter: &mut u32) -> color_eyre::Result
     let (x, y, notes) = find_guess()?;
     for value in notes {
         let board_copy = board.clone();
-        println!("Bowman's Bingo: trying ({}, {}) -> {}", x, y, value);
         board.get_tile_mut(x, y).set_value(value);
         let result = solve_loop(board, counter);
         if result.is_ok() {
