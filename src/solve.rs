@@ -50,6 +50,23 @@ fn resolve_single_notes(board: &mut Board) -> bool {
     false
 }
 
+/// Check if the board has reached a dead-end unsolvable state.
+///
+/// A board is considered unsolvable if a tile has no value and no remaining
+/// possible values, i.e. if the notes are empty
+///
+fn is_unsolvable(board: &Board) -> bool {
+    for x in 0..ROW_SIZE {
+        for y in 0..ROW_SIZE {
+            let tile = board.get_tile(x, y);
+            if tile.get_value().is_none() && tile.get_notes().is_empty() {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// Run one iteration of the solver to make a single change.
 /// Return true if a change was made, otherwise false.
 ///
@@ -92,6 +109,35 @@ fn solve_iteration(board: &mut Board) -> bool {
     return false;
 }
 
+/// Run the Bowman's Bingo algorithm - in other words, guess and check.
+pub fn bowmans_bingo(board: &mut Board) -> color_eyre::Result<()> {
+    // Find an unsolved tile and pick one of the notes to guess
+    let find_guess = || {
+        for y in 0..ROW_SIZE {
+            for x in 0..ROW_SIZE {
+                let notes = board.get_tile(x, y).get_notes();
+                if !notes.is_empty() {
+                    return Ok((x, y, notes));
+                }
+            }
+        }
+        return Err(eyre::eyre!("No tiles left with notes"));
+    };
+    let (x, y, notes) = find_guess()?;
+    for value in notes {
+        let board_copy = board.clone();
+        println!("Bowman's Bingo: trying ({}, {}) -> {}", x, y, value);
+        board.get_tile_mut(x, y).set_value(value);
+        let result = solve(board);
+        if result.is_ok() {
+            return Ok(());
+        } else {
+            *board = board_copy;
+        }
+    }
+    Err(eyre::eyre!("Bowman's Bingo failed"))
+}
+
 /// Solve the board
 /// Returns Ok() on success or Err on failure.
 pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
@@ -108,13 +154,22 @@ pub fn solve(board: &mut Board) -> color_eyre::Result<()> {
         counter += 1;
 
         let _changed = solve_iteration(board);
-        // println!("Board changed? {}", changed);
+
+        if is_unsolvable(board) {
+            return Err(eyre::eyre!("Unsolvable"));
+        }
 
         if prev_board == *board {
-            print_board(board);
-            print_notes(board);
-            println!("Failed to solve after {} iterations.", counter);
-            return Err(eyre::eyre!("unsolvable!"));
+            // No progress made from heuristic methods
+            // Fall back to Bowman's Bingo - i.e. guess and check
+            let result = bowmans_bingo(board);
+
+            if result.is_err() {
+                print_board(board);
+                print_notes(board);
+                println!("Failed to solve after {} iterations.", counter);
+                return result;
+            }
         }
         prev_board = board.clone();
     }

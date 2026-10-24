@@ -311,6 +311,13 @@ impl Board {
         Self::default()
     }
 
+    /// Create a new board from a file.
+    pub fn from_file(path: &PathBuf) -> color_eyre::Result<Self> {
+        let mut board = Board::new();
+        board.load_from_file(path)?;
+        return Ok(board);
+    }
+
     /// Get a ref to the tile at the given coordinates.
     pub fn get_tile(&self, x: usize, y: usize) -> &Tile {
         &self.rows[y].tiles[x]
