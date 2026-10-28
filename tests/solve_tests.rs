@@ -82,3 +82,11 @@ fn test_random2() {
         "examples/random/random2_solved.csv",
     );
 }
+
+#[test]
+fn test_random3() {
+    run_solve_test(
+        "examples/random/random3.csv",
+        "examples/random/random3_solved.csv",
+    );
+}
