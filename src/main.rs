@@ -15,7 +15,7 @@ use sudoku::Board;
 #[derive(Debug, Subcommand)]
 enum Command {
     /// Play a game (not yet implemented).
-    Play { filename: PathBuf },
+    Play { filename: Option<PathBuf> },
 
     /// Solve an existing puzzle from file.
     Solve {
@@ -44,9 +44,15 @@ fn main() -> color_eyre::Result<()> {
 
     if let Some(command) = args.command {
         match command {
-            Command::Play { filename: _ } => {
-                // TODO
-                // ratatui::run(app)?;
+            Command::Play { filename } => {
+                let mut app = if let Some(f) = filename {
+                    sudoku::App::from_file(&f)?
+                } else {
+                    sudoku::App::default()
+                };
+                let app_result = ratatui::run(|terminal| app.run(terminal));
+                ratatui::restore();
+                app_result?;
                 Ok(())
             }
             Command::Solve { filename, output } => {
