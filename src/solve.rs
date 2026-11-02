@@ -162,7 +162,6 @@ fn solve_iteration(board: &mut Board) -> bool {
     //  * Find hidden doubles
     //  * Find hidden triples
     //  * X-ray
-    //  * Bowman's bingo
 
     return false;
 }

@@ -6,7 +6,7 @@ use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
-    style::Stylize,
+    style::{Style, Stylize},
     symbols::{border, merge::MergeStrategy},
     text::Line,
     widgets::{Block, Paragraph, Widget},
@@ -31,7 +31,7 @@ pub struct App {
 impl App {
     /// Start a game from an existing game file.
     pub fn from_file(filename: &PathBuf) -> color_eyre::Result<Self> {
-        let board = Board::from_file(filename)?;
+        let board = Board::from_file(filename, true)?;
         Ok(Self {
             board,
             ..Default::default()
@@ -157,9 +157,16 @@ impl<'a> Widget for &Grid<'a> {
 
         for (i, cell) in cells.enumerate() {
             let (row, col) = (i / ROW_SIZE, i % ROW_SIZE);
-            Paragraph::new(format!("{}", self.board.get_tile(col, row)))
+            let tile = self.board.get_tile(col, row);
+            let style = if tile.is_locked() {
+                Style::new().bold()
+            } else {
+                Style::default()
+            };
+            Paragraph::new(format!("{}", tile))
                 .block(Block::bordered().merge_borders(MergeStrategy::Exact))
                 .centered()
+                .style(style)
                 .render(cell, buf);
         }
     }

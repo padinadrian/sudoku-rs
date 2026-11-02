@@ -60,7 +60,7 @@ fn main() -> color_eyre::Result<()> {
                     return Err(eyre::eyre!("Provided path was not a file: {:?}", filename));
                 }
                 println!("Solving file: {:?}", filename);
-                let mut board = Board::from_file(&filename)?;
+                let mut board = Board::from_file(&filename, true)?;
                 let result = sudoku::solve::solve(&mut board);
                 if result.is_ok() {
                     if let Some(output_file) = output {

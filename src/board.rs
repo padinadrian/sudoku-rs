@@ -25,10 +25,29 @@ pub fn to_square_index(x: usize, y: usize) -> usize {
 
 /// Represents a single tile on the board which contains the value
 /// (set or unset) and the notes of possible values as a bitset.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Tile {
+    /// Indicates possible values for this tile
     notes: FixedBitSet,
+    /// The current value of this tile
     value: Option<Number>,
+    /// If true, this tile's value cannot be changed
+    locked: bool,
+}
+
+impl PartialEq for Tile {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.value, other.value) {
+            (Some(value1), Some(value2)) => value1 == value2,
+            (Some(_), None) => false,
+            (None, Some(_)) => false,
+            (None, None) => self.notes == other.notes,
+        }
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
 }
 
 impl fmt::Display for Tile {
@@ -46,6 +65,7 @@ impl Default for Tile {
         Self {
             notes: FixedBitSet::with_capacity(ROW_SIZE),
             value: None,
+            locked: false,
         }
     }
 }
@@ -58,14 +78,29 @@ impl Tile {
 
     /// Set this tile to the given value.
     pub fn set_value(&mut self, value: Number) {
-        self.value = Some(value);
+        if !self.locked {
+            self.value = Some(value);
+        }
     }
 
     /// Set this tile to the given value as u8.
-    /// TODO(apadin): Dead code, only used for testing.
-    #[allow(dead_code)]
     pub fn set_value_u8(&mut self, value: u8) {
-        self.value = Some(Number::from(value));
+        self.set_value(Number::from(value));
+    }
+
+    /// Lock this tile so the value cannot be changed.
+    pub fn lock(&mut self) {
+        self.locked = true;
+    }
+
+    /// Unlock this tile so the value can be changed.
+    pub fn unlock(&mut self) {
+        self.locked = false;
+    }
+
+    /// Check if this tile is locked.
+    pub fn is_locked(&self) -> bool {
+        self.locked
     }
 
     /// Get the list of notes that are set on this tile.
@@ -312,9 +347,9 @@ impl Board {
     }
 
     /// Create a new board from a file.
-    pub fn from_file(path: &PathBuf) -> color_eyre::Result<Self> {
+    pub fn from_file(path: &PathBuf, lock_values: bool) -> color_eyre::Result<Self> {
         let mut board = Board::new();
-        board.load_from_file(path)?;
+        board.load_from_file(path, lock_values)?;
         return Ok(board);
     }
 
@@ -357,12 +392,33 @@ impl Board {
     }
 
     /// Load a saved game from a CSV file.
-    pub fn load_from_file(&mut self, path: &PathBuf) -> color_eyre::Result<()> {
-        let mut reader = csv::ReaderBuilder::new()
+    pub fn load_from_file(&mut self, path: &PathBuf, lock_values: bool) -> color_eyre::Result<()> {
+        let reader = csv::ReaderBuilder::new()
             .delimiter(b',')
             .has_headers(false)
             .from_path(path)?;
 
+        self.load_from_reader(reader, lock_values)
+    }
+
+    /// Load a saved game from a serialized CSV-formatted string.
+    /// TODO(apadin): Dead code, only used for testing.
+    #[allow(dead_code)]
+    pub fn load_from_str(&mut self, serialized: &str, lock_values: bool) -> color_eyre::Result<()> {
+        let reader = csv::ReaderBuilder::new()
+            .delimiter(b',')
+            .has_headers(false)
+            .from_reader(serialized.as_bytes());
+
+        self.load_from_reader(reader, lock_values)
+    }
+
+    /// Load a saved game from a generic reader.
+    fn load_from_reader<R: std::io::Read>(
+        &mut self,
+        mut reader: csv::Reader<R>,
+        lock_values: bool,
+    ) -> color_eyre::Result<()> {
         for (y, result) in reader.deserialize().enumerate() {
             let row: SerializedRow = result?;
             for x in 0..ROW_SIZE {
@@ -370,25 +426,13 @@ impl Board {
                     n if (n > 0 && n < 10) => Some(Number::from(n)),
                     _ => None,
                 };
-                self.set(x, y, number);
-            }
-        }
-        Ok(())
-    }
-
-    /// Load a saved game from a serialized CSV-formatted string.
-    /// TODO(apadin): Dead code, only used for testing.
-    #[allow(dead_code)]
-    pub fn load_from_str(&mut self, serialized: &str) -> color_eyre::Result<()> {
-        let mut reader = csv::ReaderBuilder::new()
-            .delimiter(b',')
-            .has_headers(false)
-            .from_reader(serialized.as_bytes());
-
-        for (y, result) in reader.deserialize().enumerate() {
-            let row: SerializedRow = result?;
-            for x in 0..ROW_SIZE {
-                self.set(x, y, Some(Number::from(row[x])));
+                if let Some(value) = number {
+                    let tile = self.get_tile_mut(x, y);
+                    tile.set_value(value);
+                    if lock_values {
+                        tile.lock();
+                    }
+                }
             }
         }
         Ok(())
@@ -500,6 +544,37 @@ mod tests {
     }
 
     #[test]
+    fn test_tile_partial_eq1() {
+        let mut tile1 = Tile::default();
+        tile1.set_value(Number::Eight);
+        let mut tile2 = Tile::default();
+        tile2.set_value(Number::Nine);
+        assert_eq!(tile1, tile1);
+        assert_ne!(tile1, tile2);
+    }
+
+    #[test]
+    fn test_tile_partial_eq2() {
+        let mut tile1 = Tile::default();
+        tile1.set_value(Number::Eight);
+        let tile2 = Tile::default();
+        assert_ne!(tile1, tile2);
+        assert_ne!(tile2, tile1);
+    }
+
+    #[test]
+    fn test_tile_partial_eq3() {
+        let mut tile1 = Tile::default();
+        let mut tile2 = Tile::default();
+        tile1.set_notes_u8(&[1, 2, 3]);
+        tile2.set_notes_u8(&[4, 5, 6]);
+        assert_eq!(tile1, tile1);
+        assert_eq!(tile2, tile2);
+        assert_ne!(tile1, tile2);
+        assert_ne!(tile2, tile1);
+    }
+
+    #[test]
     fn test_tile_has_note() {
         let mut tile = Tile::default();
         tile.set_notes_u8(&[1, 3, 5, 7, 8]);
@@ -517,7 +592,7 @@ mod tests {
     #[test]
     fn test_board_get_value() {
         let mut board = Board::default();
-        board.load_from_str(SOLVED_BOARD).unwrap();
+        board.load_from_str(SOLVED_BOARD, true).unwrap();
         assert_eq!(board.get_value(0, 0), Some(Number::One));
         assert_eq!(board.get_value(1, 1), Some(Number::Five));
         assert_eq!(board.get_value(2, 2), Some(Number::Nine));
@@ -532,7 +607,7 @@ mod tests {
     #[test]
     fn test_board_get_row() {
         let mut board = Board::default();
-        board.load_from_str(SOLVED_BOARD).unwrap();
+        board.load_from_str(SOLVED_BOARD, true).unwrap();
         let expected_ints = [2, 3, 1, 5, 6, 4, 8, 9, 7];
         let expected_numbers = expected_ints.map(|n| Number::from(n));
         let mut row_iter = board.get_row(3);
@@ -544,7 +619,7 @@ mod tests {
     #[test]
     fn test_board_get_column() {
         let mut board = Board::default();
-        board.load_from_str(SOLVED_BOARD).unwrap();
+        board.load_from_str(SOLVED_BOARD, true).unwrap();
         let expected_ints = [5, 8, 2, 6, 9, 3, 4, 7, 1];
         let expected_numbers = expected_ints.map(|n| Number::from(n));
         let mut column_iter = board.get_column(4);
@@ -556,7 +631,7 @@ mod tests {
     #[test]
     fn test_board_get_square() {
         let mut board = Board::default();
-        board.load_from_str(SOLVED_BOARD).unwrap();
+        board.load_from_str(SOLVED_BOARD, true).unwrap();
         let expected_ints = [6, 4, 5, 9, 7, 8, 3, 1, 2];
         let expected_numbers = expected_ints.map(|n| Number::from(n));
         let mut square_iter = board.get_square(7);
@@ -568,14 +643,14 @@ mod tests {
     #[test]
     fn test_board_is_solved() {
         let mut board = Board::default();
-        board.load_from_str(SOLVED_BOARD).unwrap();
+        board.load_from_str(SOLVED_BOARD, true).unwrap();
         assert!(board.is_solved());
     }
 
     #[test]
     fn test_board_is_not_solved() {
         let mut board = Board::default();
-        board.load_from_str(UNSOLVED_BOARD).unwrap();
+        board.load_from_str(UNSOLVED_BOARD, true).unwrap();
         assert!(!board.is_solved());
     }
 

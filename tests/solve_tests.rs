@@ -6,8 +6,8 @@ use sudoku::Board;
 fn run_solve_test(starting_path: &str, solution_path: &str) {
     let start_path = PathBuf::from(starting_path);
     let solution_path = PathBuf::from(solution_path);
-    let mut board = Board::from_file(&start_path).expect("failed to read file");
-    let solution = Board::from_file(&solution_path).expect("failed to read file");
+    let mut board = Board::from_file(&start_path, true).expect("failed to read file");
+    let solution = Board::from_file(&solution_path, true).expect("failed to read file");
     sudoku::solve::solve(&mut board).unwrap();
     assert_eq!(board, solution);
 }
