@@ -221,7 +221,26 @@ impl<'a> Widget for &Grid<'a> {
                 style = style.bg(Color::Cyan);
             }
             if cursor_value.is_some() && cursor_value == tile.get_value() {
-                style = style.bg(Color::LightGreen);
+                let mut mistake = false;
+                if (row, col) == (self.cursor.y, self.cursor.x) {
+                    for (i, t) in self.board.get_row(row).enumerate() {
+                        if i != col && t.get_value() == cursor_value {
+                            mistake = true;
+                            break;
+                        }
+                    }
+                    for (i, t) in self.board.get_column(col).enumerate() {
+                        if i != row && t.get_value() == cursor_value {
+                            mistake = true;
+                            break;
+                        }
+                    }
+                }
+                if mistake {
+                    style = style.bg(Color::LightRed);
+                } else {
+                    style = style.bg(Color::LightGreen);
+                }
             }
 
             Paragraph::new(format!("{}", tile))
