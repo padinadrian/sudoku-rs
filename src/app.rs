@@ -6,7 +6,7 @@ use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Style, Stylize},
+    style::{Color, Style, Stylize},
     symbols::{border, merge::MergeStrategy},
     text::Line,
     widgets::{Block, Paragraph, Widget},
@@ -23,8 +23,15 @@ const MIN_WINDOW_WIDTH: u16 = 56;
 const MIN_WINDOW_HEIGHT: u16 = 21;
 
 #[derive(Debug, Default)]
+struct Cursor {
+    x: usize,
+    y: usize,
+}
+
+#[derive(Debug, Default)]
 pub struct App {
     board: Board,
+    cursor: Cursor,
     exit: bool,
 }
 
@@ -70,6 +77,26 @@ impl App {
             KeyCode::Char('c') if key_event.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.exit()
             }
+            KeyCode::Up => {
+                if self.cursor.y > 0 {
+                    self.cursor.y -= 1;
+                }
+            }
+            KeyCode::Down => {
+                if self.cursor.y < 8 {
+                    self.cursor.y += 1;
+                }
+            }
+            KeyCode::Left => {
+                if self.cursor.x > 0 {
+                    self.cursor.x -= 1;
+                }
+            }
+            KeyCode::Right => {
+                if self.cursor.x < 8 {
+                    self.cursor.x += 1;
+                }
+            }
             _ => {}
         }
     }
@@ -84,12 +111,11 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Line::from("Sudoku".bold());
         let instructions = Line::from(vec![
-            " Decrement ".into(),
-            "<Left>".blue().bold(),
-            " Increment ".into(),
-            "<Right>".blue().bold(),
-            " Quit ".into(),
-            "<Q> ".blue().bold(),
+            " Cursor: ".into(),
+            "← → ↑ ↓".blue().bold(),
+            format!(" ({}, {})", self.cursor.x + 1, self.cursor.y + 1).into(),
+            " | Quit: ".into(),
+            "^C ".blue().bold(),
         ]);
         let block = Block::bordered()
             .title(title.centered())
@@ -127,18 +153,19 @@ impl Widget for &App {
             ])
             .split(grid_area);
 
-        let grid = Grid::new(&self.board);
+        let grid = Grid::new(&self.board, &self.cursor);
         grid.render(grid_layout[1], buf);
     }
 }
 
 struct Grid<'a> {
     board: &'a Board,
+    cursor: &'a Cursor,
 }
 
 impl<'a> Grid<'a> {
-    fn new(board: &'a Board) -> Self {
-        Self { board }
+    fn new(board: &'a Board, cursor: &'a Cursor) -> Self {
+        Self { board, cursor }
     }
 }
 
@@ -155,14 +182,25 @@ impl<'a> Widget for &Grid<'a> {
         let rows = vertical.split(area);
         let cells = rows.iter().flat_map(|row| row.layout_vec(&horizontal));
 
+        let cursor_value = self
+            .board
+            .get_tile(self.cursor.x, self.cursor.y)
+            .get_value();
+
         for (i, cell) in cells.enumerate() {
             let (row, col) = (i / ROW_SIZE, i % ROW_SIZE);
             let tile = self.board.get_tile(col, row);
-            let style = if tile.is_locked() {
-                Style::new().bold()
-            } else {
-                Style::default()
-            };
+            let mut style = Style::new();
+            if tile.is_locked() {
+                style = style.bold();
+            }
+            if (row == self.cursor.y) || (col == self.cursor.x) {
+                style = style.bg(Color::Cyan);
+            }
+            if cursor_value.is_some() && cursor_value == tile.get_value() {
+                style = style.bg(Color::LightGreen);
+            }
+
             Paragraph::new(format!("{}", tile))
                 .block(Block::bordered().merge_borders(MergeStrategy::Exact))
                 .centered()
