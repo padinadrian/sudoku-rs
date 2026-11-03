@@ -3,6 +3,8 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt;
 
+pub const MAX_NUMBER: usize = 9;
+
 /// Numbers 1 through 9, the possible values for a tile on the board.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
@@ -18,7 +20,7 @@ pub enum Number {
     Nine = 9,
 }
 
-pub const ALL_NUMBERS: [Number; 9] = [
+pub const ALL_NUMBERS: [Number; MAX_NUMBER] = [
     Number::One,
     Number::Two,
     Number::Three,

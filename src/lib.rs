@@ -5,6 +5,7 @@ mod board;
 mod debug;
 mod helpers;
 mod number;
+mod tile;
 // mod serialize;
 
 pub mod solve;
