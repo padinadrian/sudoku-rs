@@ -35,6 +35,7 @@ struct Cursor {
 pub struct App {
     board: Board,
     cursor: Cursor,
+    solved: bool,
     exit: bool,
 }
 
@@ -42,8 +43,10 @@ impl App {
     /// Start a game from an existing game file.
     pub fn from_file(filename: &PathBuf) -> color_eyre::Result<Self> {
         let board = Board::from_file(filename, true)?;
+        let solved = board.is_solved();
         Ok(Self {
             board,
+            solved,
             ..Default::default()
         })
     }
@@ -116,12 +119,19 @@ impl App {
 
     /// Handle a number input from the board UI.
     fn handle_number_input(&mut self, value: Number) {
-        self.board.set(self.cursor.x, self.cursor.y, Some(value));
+        if !self.solved {
+            self.board.set(self.cursor.x, self.cursor.y, Some(value));
+            if self.board.is_solved() {
+                self.solved = true;
+            }
+        }
     }
 
     /// Handle clearing the currently selected tile.
     fn handle_clear_value(&mut self) {
-        self.board.set(self.cursor.x, self.cursor.y, None);
+        if !self.solved {
+            self.board.set(self.cursor.x, self.cursor.y, None);
+        }
     }
 
     /// Exit the app. Causes the run loop to terminate.
@@ -132,18 +142,24 @@ impl App {
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Line::from("Sudoku".bold());
-        let instructions = Line::from(vec![
-            " Cursor: ".into(),
-            "← → ↑ ↓".blue().bold(),
-            format!(" ({}, {})", self.cursor.x + 1, self.cursor.y + 1).into(),
-            " | Quit: ".into(),
-            "^C ".blue().bold(),
-        ]);
-        let block = Block::bordered()
-            .title(title.centered())
-            .title_bottom(instructions.centered());
-        // .border_set(border::THICK);
+        let title = Line::from(" Sudoku ".bold());
+        let block = if self.solved {
+            let solved_text: Line = " Solved! Press <Q> to Quit ".into();
+            Block::bordered()
+                .title(title.centered())
+                .title_bottom(solved_text.centered())
+        } else {
+            let instructions = Line::from(vec![
+                " Cursor: ".into(),
+                "← → ↑ ↓".blue().bold(),
+                format!(" ({}, {})", self.cursor.x + 1, self.cursor.y + 1).into(),
+                " | Quit: ".into(),
+                "^C ".blue().bold(),
+            ]);
+            Block::bordered()
+                .title(title.centered())
+                .title_bottom(instructions.centered())
+        };
 
         block.render(area, buf);
 
