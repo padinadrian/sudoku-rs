@@ -268,6 +268,26 @@ impl<'a> Widget for &Grid<'a> {
                 .style(style)
                 .render(cell, buf);
         }
+
+        let col_constraints2 = (0..3).map(|_| Constraint::Length(TILE_WIDTH * 3 - 2));
+        let row_constraints2 = (0..3).map(|_| Constraint::Length(TILE_HEIGHT * 3 - 2));
+        let horizontal2 = Layout::horizontal(col_constraints2).spacing(-1);
+        let vertical2 = Layout::vertical(row_constraints2).spacing(-1);
+
+        let square_rows = vertical2.split(area);
+        let squares = square_rows
+            .iter()
+            .flat_map(|row| row.layout_vec(&horizontal2));
+        for square in squares {
+            Paragraph::new("")
+                .block(
+                    Block::bordered()
+                        .border_set(border::THICK)
+                        .merge_borders(MergeStrategy::Exact),
+                )
+                .centered()
+                .render(square, buf);
+        }
     }
 }
 
