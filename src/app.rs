@@ -1,6 +1,9 @@
 //! cli app
 
-use crate::board::{Board, ROW_SIZE};
+use crate::{
+    board::{Board, ROW_SIZE},
+    number::Number,
+};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     DefaultTerminal, Frame,
@@ -97,8 +100,28 @@ impl App {
                     self.cursor.x += 1;
                 }
             }
+            KeyCode::Char('1') => self.handle_number_input(Number::One),
+            KeyCode::Char('2') => self.handle_number_input(Number::Two),
+            KeyCode::Char('3') => self.handle_number_input(Number::Three),
+            KeyCode::Char('4') => self.handle_number_input(Number::Four),
+            KeyCode::Char('5') => self.handle_number_input(Number::Five),
+            KeyCode::Char('6') => self.handle_number_input(Number::Six),
+            KeyCode::Char('7') => self.handle_number_input(Number::Seven),
+            KeyCode::Char('8') => self.handle_number_input(Number::Eight),
+            KeyCode::Char('9') => self.handle_number_input(Number::Nine),
+            KeyCode::Backspace | KeyCode::Delete => self.handle_clear_value(),
             _ => {}
         }
+    }
+
+    /// Handle a number input from the board UI.
+    fn handle_number_input(&mut self, value: Number) {
+        self.board.set(self.cursor.x, self.cursor.y, Some(value));
+    }
+
+    /// Handle clearing the currently selected tile.
+    fn handle_clear_value(&mut self) {
+        self.board.set(self.cursor.x, self.cursor.y, None);
     }
 
     /// Exit the app. Causes the run loop to terminate.
