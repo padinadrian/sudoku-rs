@@ -79,7 +79,6 @@ impl App {
     /// Handle a key press event.
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
-            KeyCode::Char('q') => self.exit(),
             KeyCode::Char('c') if key_event.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.exit()
             }
@@ -144,7 +143,11 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Line::from(" Sudoku ".bold());
         let block = if self.solved {
-            let solved_text: Line = " Solved! Press <Q> to Quit ".into();
+            let solved_text: Line = Line::from(vec![
+                " Solved! Press ".into(),
+                "<Ctrl-C>".blue().bold(),
+                " to Quit ".into(),
+            ]);
             Block::bordered()
                 .title(title.centered())
                 .title_bottom(solved_text.centered())
@@ -154,7 +157,7 @@ impl Widget for &App {
                 "← → ↑ ↓".blue().bold(),
                 format!(" ({}, {})", self.cursor.x + 1, self.cursor.y + 1).into(),
                 " | Quit: ".into(),
-                "^C ".blue().bold(),
+                "<Ctrl-C> ".blue().bold(),
             ]);
             Block::bordered()
                 .title(title.centered())
@@ -271,13 +274,6 @@ impl<'a> Widget for &Grid<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_handle_key_event_quit() {
-        let mut app = App::default();
-        app.handle_key_event(KeyCode::Char('q').into());
-        assert!(app.exit);
-    }
 
     #[test]
     fn test_handle_key_event_ctrl_c() {
