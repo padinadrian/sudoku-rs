@@ -2,6 +2,8 @@
 
 use crate::app::ascii_art::ASCII_NUMBER_LOOKUP;
 use crate::board::{Board, ROW_SIZE};
+use crate::number::Number;
+use crate::tile::Tile;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -11,8 +13,47 @@ use ratatui::{
 };
 
 pub const TILES_PER_ROW: u16 = ROW_SIZE as u16;
-pub const TILE_WIDTH: u16 = 10;
+pub const TILE_WIDTH: u16 = 11;
 pub const TILE_HEIGHT: u16 = 5;
+
+fn format_notes(tile: &Tile) -> String {
+    format!(
+        "{} {} {}\n{} {} {}\n{} {} {}",
+        if tile.has_note(Number::One) { "1" } else { " " },
+        if tile.has_note(Number::Two) { "2" } else { " " },
+        if tile.has_note(Number::Three) {
+            "3"
+        } else {
+            " "
+        },
+        if tile.has_note(Number::Four) {
+            "4"
+        } else {
+            " "
+        },
+        if tile.has_note(Number::Five) {
+            "5"
+        } else {
+            " "
+        },
+        if tile.has_note(Number::Six) { "6" } else { " " },
+        if tile.has_note(Number::Seven) {
+            "7"
+        } else {
+            " "
+        },
+        if tile.has_note(Number::Eight) {
+            "8"
+        } else {
+            " "
+        },
+        if tile.has_note(Number::Nine) {
+            "9"
+        } else {
+            " "
+        },
+    )
+}
 
 #[derive(Debug, Default)]
 pub struct Cursor {
@@ -84,8 +125,8 @@ impl<'a> Widget for &Grid<'a> {
             }
 
             let display_str = match tile.get_value() {
-                None => "",
-                Some(value) => ASCII_NUMBER_LOOKUP[value as usize],
+                None => format_notes(tile),
+                Some(value) => String::from(ASCII_NUMBER_LOOKUP[value as usize]),
             };
             Paragraph::new(format!("{}", display_str))
                 .block(Block::bordered().merge_borders(MergeStrategy::Exact))

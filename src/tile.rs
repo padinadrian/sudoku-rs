@@ -170,6 +170,11 @@ impl Tile {
         }
     }
 
+    /// Clear all notes on this tile.
+    pub fn clear_all_notes(&mut self) {
+        self.notes.clear();
+    }
+
     /// Check if this tile has a note for the given value.
     pub fn has_note(&self, value: Number) -> bool {
         if self.value.is_some() {
@@ -177,6 +182,11 @@ impl Tile {
         } else {
             self.notes.contains(value as usize - 1)
         }
+    }
+
+    /// Set the note if it is not set, or clear it if it is set.
+    pub fn toggle_note(&mut self, value: Number) {
+        self.notes.toggle(value as usize - 1);
     }
 }
 

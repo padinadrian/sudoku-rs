@@ -31,6 +31,7 @@ pub struct App {
     cursor: Cursor,
     solved: bool,
     exit: bool,
+    notes_mode: bool,
 }
 
 impl App {
@@ -105,14 +106,22 @@ impl App {
             KeyCode::Char('7') => self.handle_number_input(Number::Seven),
             KeyCode::Char('8') => self.handle_number_input(Number::Eight),
             KeyCode::Char('9') => self.handle_number_input(Number::Nine),
-            KeyCode::Backspace | KeyCode::Delete => self.handle_clear_value(),
+            KeyCode::Backspace | KeyCode::Delete => self.handle_backspace(),
+            KeyCode::Tab => self.toggle_mode(),
             _ => {}
         }
     }
 
     /// Handle a number input from the board UI.
     fn handle_number_input(&mut self, value: Number) {
-        if !self.solved {
+        if self.solved {
+            return;
+        }
+        if self.notes_mode {
+            self.board
+                .get_tile_mut(self.cursor.x, self.cursor.y)
+                .toggle_note(value);
+        } else {
             self.board.set(self.cursor.x, self.cursor.y, Some(value));
             if self.board.is_solved() {
                 self.solved = true;
@@ -121,10 +130,22 @@ impl App {
     }
 
     /// Handle clearing the currently selected tile.
-    fn handle_clear_value(&mut self) {
-        if !self.solved {
+    fn handle_backspace(&mut self) {
+        if self.solved {
+            return;
+        }
+        if self.notes_mode {
+            self.board
+                .get_tile_mut(self.cursor.x, self.cursor.y)
+                .clear_all_notes();
+        } else {
             self.board.set(self.cursor.x, self.cursor.y, None);
         }
+    }
+
+    /// Change between notes and value modes.
+    fn toggle_mode(&mut self) {
+        self.notes_mode = !self.notes_mode;
     }
 
     /// Exit the app. Causes the run loop to terminate.
@@ -150,6 +171,8 @@ impl Widget for &App {
                 " Cursor: ".into(),
                 "← → ↑ ↓".blue().bold(),
                 format!(" ({}, {})", self.cursor.x + 1, self.cursor.y + 1).into(),
+                " | Mode: ".into(),
+                if self.notes_mode { "Notes" } else { "Value" }.into(),
                 " | Quit: ".into(),
                 "<Ctrl-C> ".blue().bold(),
             ]);
