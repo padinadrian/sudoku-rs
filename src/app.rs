@@ -1,11 +1,13 @@
 //! cli app
 
+mod ascii_art;
 mod grid;
+mod grid2;
 
 use crate::board::Board;
 use crate::number::Number;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use grid::{Cursor, Grid, TILE_HEIGHT, TILE_WIDTH, TILES_PER_ROW};
+use grid2::{Cursor, Grid, TILE_HEIGHT, TILE_WIDTH, TILES_PER_ROW};
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
